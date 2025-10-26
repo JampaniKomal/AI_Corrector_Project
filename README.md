@@ -155,7 +155,7 @@ The executable will be created in the `dist/` folder (~200MB).
 ### Step 2: Build All-in-One Installer (includes app inside)
 
 ```bash
-pyinstaller -F --noconsole --name AICorrector-Setup --collect-all customtkinter --add-data "dist\\AICorrector.exe;." --icon assets\\app_logo.ico scripts/setup.py
+pyinstaller -F --noconsole --name AICorrector-Setup --collect-all customtkinter --add-data "dist\\AICorrector.exe;." --icon assets\\app_logo.ico --specpath config scripts/setup.py
 ```
 
 This bundles `AICorrector.exe` **inside** the installer.
