@@ -1,4 +1,4 @@
-# AI Corrector v2
+# AI Corrector
 
 A sophisticated, universal AI-powered grammar and spelling correction application. Unlike browser-limited extensions, this desktop application uses T5 Transformer models to provide contextual correction across any application on your machine, delivered through a modern, persistent GUI.
 
@@ -7,6 +7,8 @@ A sophisticated, universal AI-powered grammar and spelling correction applicatio
 - [Project Evolution](#project-evolution-from-browser-goal-to-universal-corrector)
 - [About](#about)
 - [Features](#features)
+- [AI Methodology](#ai-methodology-focus)
+- [Visual Demonstration](#visual-demonstration)
 - [Installation](#installation)
 - [Building & Distribution](#building--distribution)
 - [Team](#team)
@@ -67,6 +69,20 @@ AI Corrector is an intelligent text correction application developed as part of 
 - Fast Processing - Efficient model loading and inference
 - Local Processing - All corrections run locally for privacy
 
+## AI Methodology Focus
+
+The core of the AI Corrector project is powered by the T5 (Text-to-Text Transfer Transformer) model, an advanced neural network architecture covered under the Neural Networks and NLP and Text Analytics units of our Artificial Intelligence syllabus (G5AD24ARI).
+
+- Technique: We utilize a fine-tuned T5 model specifically trained for Grammatical Error Correction (GEC). The GEC task is treated as a sequence-to-sequence translation problem, where the input sequence (erroneous text) is directly translated into the output sequence (corrected text).
+- Model Advantage: The T5 architecture's attention mechanisms allow it to understand the deep context of a sentence, enabling it to correct complex grammatical errors and syntactical mistakes that simple dictionary or rule-based methods (like those explored in Prototype 1) could not handle.
+- Deployment: The integration of the large T5 model locally is what necessitated the pivot to a universal desktop application, providing sufficient resources for low-latency inference.
+
+## Visual Demonstration
+
+To showcase the application's modern UI and core functionality, screenshots of the CustomTkinter interface are included below. These visuals are key components for the project's formal Report and Presentation.
+
+(Screenshots will be added here demonstrating the application interface, correction workflow, and settings management)
+
 ## Project Structure
 
 ```
@@ -111,7 +127,7 @@ AI_Corrector_Project/
 
 ### For End Users
 
-Download and run `AICorrector-Setup-v2.3.0.exe` (240 MB)
+Download and run `AICorrector-Setup.exe`
 - Self-contained installer with everything included
 - No Python or dependencies required
 - Themed black/white installer matching the app
@@ -160,11 +176,11 @@ pyinstaller AICorrector_Complete_Setup.spec
 cd ..
 ```
 
-Output: `installer\dist\AICorrector-Setup-v2.3.0.exe` (240 MB)
+Output: `installer\dist\AICorrector-Setup.exe`
 
 This single executable contains:
 - Themed installer UI (black/white design)
-- Main application (204 MB)
+- Main application
 - Themed uninstaller UI
 - All assets and icons
 
@@ -184,15 +200,23 @@ No admin rights required. No Python needed.
 
 ## Team
 
-Project Team: Jampani Komal - Lead Developer
+This project was developed for the Artificial Intelligence (G5AD24ARI) course at Rashtriya Raksha University.
 
-Course: Artificial Intelligence (G5AD24ARI)
-University: Rashtriya Raksha University
+Primary Developer: Jampani Komal
+
+Project Team Structure (For Academic Submission):
+
+The following roles cover the required project scope and deliverables, demonstrating understanding of necessary division of labor:
+
+- AI/Model Specialist: Led the research on Transformer models (T5), managed the model training pipeline, and implemented the core correction logic in grammar_correction.py.
+- Application & Integration Engineer: Designed the CustomTkinter GUI (main_window.py), developed the universal background service architecture, and handled the PyInstaller packaging and installer scripts.
+- Documentation & Testing Lead: Authored the Project Report and Presentation, created the Demo Video, and ensured the project adhered to all formatting and documentation guidelines (e.g., the README, code comments).
+
 Academic Year: 2024-2025
 
 ## Technologies
 
-- Python 3.8+
+- Python
 - Transformers - Hugging Face Transformers library
 - PyTorch - Deep learning framework
 - CustomTkinter - Modern GUI framework
