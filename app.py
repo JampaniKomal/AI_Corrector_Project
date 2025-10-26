@@ -1,11 +1,14 @@
 import customtkinter as ctk
 import tkinter as tk
+import tkinter.messagebox as messagebox
 import threading
 import os
-from correct import check_and_download_model, load_model_from_disk, correct_grammar
+from correct import (SUPPORTED_MODELS, check_if_model_downloaded,
+                     download_model_for_language, load_model_from_disk,
+                     correct_grammar, get_model_path)
 from spellchecker import SpellChecker
 
-# --- 2. THEME DEFINITIONS ---
+# --- THEME DEFINITIONS ---
 BG_COLOR = "#000000"
 MENU_COLOR = "#1C1C1C"
 ENTRY_COLOR = "#1C1C1C"
@@ -14,21 +17,24 @@ BTN_COLOR = "#FFFFFF"
 BTN_TEXT_COLOR = "#000000"
 BTN_HOVER_COLOR = "#E0E0E0"
 ICON_HOVER_COLOR = "#333333"
+DOWNLOAD_BTN_COLOR = "#4CAF50" # Green for download
+DOWNLOAD_BTN_HOVER = "#66BB6A"
 
-# --- 3. THE MAIN APPLICATION CLASS ---
+# --- MAIN APPLICATION CLASS ---
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        # --- Basic App Setup ---
-        self.title("AI Corrector v2.0")
+        self.title("AI Corrector v2.1")
         self.geometry("1100x600")
         self.configure(fg_color=BG_COLOR)
         ctk.set_appearance_mode("dark")
 
-        # --- AI Model Placeholder ---
+        # --- AI Model State ---
+        self.current_lang_code = None
         self.model = None
         self.tokenizer = None
+        self.is_loading = False # Flag to prevent multiple loads
 
         # --- Layout Grids ---
         self.grid_columnconfigure(1, weight=1)
@@ -36,181 +42,73 @@ class App(ctk.CTk):
 
         # --- Class Variables ---
         self.theme_radio_var = tk.StringVar(value="dark")
-        
-        # --- Create all GUI components ---
+        self.language_buttons = {} # To store download buttons
+        self.language_progress_bars = {} # To store progress bars
+        self.language_status_labels = {} # To store status labels
+
+        # --- Create GUI ---
         self.create_sidebars()
         self.create_pages()
+        self.update_language_statuses() # Check initial status
 
-        # --- START THE LOADING PROCESS ---
-        self.start_loading_process()
-
-    def start_loading_process(self):
-        # --- Create a "Loading" Pop-up Window ---
-        self.loading_popup = ctk.CTkToplevel(self)
-        self.loading_popup.title("Initializing...")
-        self.loading_popup.geometry("300x150")
-        self.loading_popup.configure(fg_color=MENU_COLOR)
-        # This makes the popup "modal" - you can't click the main app
-        self.loading_popup.grab_set() 
-        self.loading_popup.transient(self)
-
-        self.loading_label = ctk.CTkLabel(
-            self.loading_popup,
-            text="Initializing... Please wait.\n\nOn first launch, this will download\nthe 892MB AI model.",
-            font=ctk.CTkFont(size=14)
-        )
-        self.loading_label.pack(pady=20, padx=20, expand=True)
-        
-        # Disable main corrector page
-        self.corrector_page_frame.configure(fg_color="#333333")
-        self.corrector_input_textbox.configure(state="disabled")
-        self.corrector_button_middle.configure(state="disabled")
-
-        # --- Start the background thread ---
-        # We use 'daemon=True' so the thread automatically closes if the app is quit
-        self.loading_thread = threading.Thread(target=self.initialize_app_thread, daemon=True)
-        self.loading_thread.start()
-
-    def initialize_app_thread(self):
-        """
-        --- RUNS IN BACKGROUND THREAD ---
-        Checks for the model, downloads if needed, then loads it.
-        """
-        print("[Thread] Starting model check/download...")
-        
-        # 1. Check/Download model files
-        # This is the slow part (if it's the first time)
-        download_success = check_and_download_model()
-        
-        if download_success:
-            # 2. Load model from disk
-            # This is also slow (a few seconds)
-            print("[Thread] Loading model from disk...")
-            self.model, self.tokenizer = load_model_from_disk()
-            print("[Thread] Model loaded.")
-            
-            # 3. Tell the GUI thread we are done
-            # We use .after() to safely talk to the main GUI thread
-            self.after(0, self.on_loading_complete)
-        else:
-            # Handle download failure
-            self.after(0, self.on_loading_failed)
-
-    def on_loading_complete(self):
-        """
-        --- RUNS IN MAIN GUI THREAD ---
-        Called when the background thread is finished.
-        """
-        print("[GUI] Loading complete. Enabling app.")
-        self.loading_popup.destroy() # Close the popup
-        
-        # Re-enable the corrector page
-        self.corrector_page_frame.configure(fg_color=BG_COLOR)
-        self.corrector_input_textbox.configure(state="normal")
-        self.corrector_button_middle.configure(state="normal")
-        # Show the default page
+        # --- Show default page ---
         self.show_page("corrector")
+        # Attempt to load default model if available
+        self.load_selected_model("en_us", initial_load=True)
 
-    def on_loading_failed(self):
-        """
-        --- RUNS IN MAIN GUI THREAD ---
-        Called if the download fails.
-        """
-        print("[GUI] Loading FAILED.")
-        self.loading_label.configure(
-            text="Error: Could not download model.\n\nPlease check your internet connection\nand restart the application."
-        )
-        # We don't destroy the popup, so the user sees the error
 
+    # --- GUI Creation Methods ---
     def create_sidebars(self):
-        # --- EXPANDED Sidebar (Visible by default) ---
+        # --- EXPANDED Sidebar ---
         self.sidebar_expanded = ctk.CTkFrame(self, width=250, corner_radius=0, fg_color=MENU_COLOR)
         self.sidebar_expanded.grid(row=0, column=0, sticky="nsw")
-        self.sidebar_expanded.grid_rowconfigure(6, weight=1) # Spacer row
+        self.sidebar_expanded.grid_rowconfigure(5, weight=1) # Spacer
 
-        # Toggle Button (Top)
-        menu_toggle_btn_exp = ctk.CTkButton(
-            self.sidebar_expanded, text="☰", font=ctk.CTkFont(size=20),
-            width=40, fg_color="transparent", hover_color=ICON_HOVER_COLOR,
-            command=self.toggle_sidebar, anchor="w"
-        )
+        menu_toggle_btn_exp = ctk.CTkButton(self.sidebar_expanded, text="☰", font=ctk.CTkFont(size=20), width=40, fg_color="transparent", hover_color=ICON_HOVER_COLOR, command=self.toggle_sidebar, anchor="w")
         menu_toggle_btn_exp.grid(row=0, column=0, pady=20, padx=20, sticky="w")
-        # ... (rest of sidebar code is identical to previous version) ...
-        title_label = ctk.CTkLabel(
-            self.sidebar_expanded, text="AI Corrector",
-            font=ctk.CTkFont(size=22, weight="bold"), anchor="w"
-        )
+        title_label = ctk.CTkLabel(self.sidebar_expanded, text="AI Corrector", font=ctk.CTkFont(size=22, weight="bold"), anchor="w")
         title_label.grid(row=1, column=0, pady=(0, 20), padx=20, sticky="w")
-        self.corrector_btn_exp = ctk.CTkButton(
-            self.sidebar_expanded, text="✎  Corrector", font=ctk.CTkFont(size=14, weight="bold"),
-            anchor="w", corner_radius=8, command=lambda: self.show_page("corrector")
-        )
+        self.corrector_btn_exp = ctk.CTkButton(self.sidebar_expanded, text="✎  Corrector", font=ctk.CTkFont(size=14, weight="bold"), anchor="w", corner_radius=8, command=lambda: self.show_page("corrector"))
         self.corrector_btn_exp.grid(row=2, column=0, pady=5, padx=20, sticky="ew")
-        self.about_btn_exp = ctk.CTkButton(
-            self.sidebar_expanded, text="ⓘ  About Us", font=ctk.CTkFont(size=14, weight="bold"),
-            anchor="w", fg_color="transparent", text_color=TEXT_COLOR,
-            corner_radius=8, command=lambda: self.show_page("about")
-        )
+        self.about_btn_exp = ctk.CTkButton(self.sidebar_expanded, text="ⓘ  About Us", font=ctk.CTkFont(size=14, weight="bold"), anchor="w", fg_color="transparent", text_color=TEXT_COLOR, corner_radius=8, command=lambda: self.show_page("about"))
         self.about_btn_exp.grid(row=3, column=0, pady=5, padx=20, sticky="ew")
-        lang_label = ctk.CTkLabel(
-            self.sidebar_expanded, text="🌐  Language",
-            font=ctk.CTkFont(size=14, weight="bold"), anchor="w"
-        )
-        lang_label.grid(row=4, column=0, pady=(20, 5), padx=20, sticky="w")
-        self.lang_menu = ctk.CTkOptionMenu(
-            self.sidebar_expanded,
-            values=["English (US/Global)", "English (UK) - (Future)", "English (IN) - (Future)"],
-            fg_color=ENTRY_COLOR, text_color=TEXT_COLOR, button_color=ENTRY_COLOR
-        )
-        self.lang_menu.grid(row=5, column=0, pady=5, padx=20, sticky="ew")
-        self.settings_btn_exp = ctk.CTkButton(
-            self.sidebar_expanded, text="⚙  Settings", font=ctk.CTkFont(size=14, weight="bold"),
-            anchor="w", fg_color="transparent", text_color=TEXT_COLOR,
-            corner_radius=8, command=lambda: self.show_page("settings")
-        )
-        self.settings_btn_exp.grid(row=7, column=0, pady=20, padx=20, sticky="s")
+        self.settings_btn_exp = ctk.CTkButton(self.sidebar_expanded, text="⚙  Settings", font=ctk.CTkFont(size=14, weight="bold"), anchor="w", fg_color="transparent", text_color=TEXT_COLOR, corner_radius=8, command=lambda: self.show_page("settings"))
+        self.settings_btn_exp.grid(row=6, column=0, pady=20, padx=20, sticky="s")
 
-        # --- COLLAPSED Sidebar (Hidden by default) ---
+        # --- COLLAPSED Sidebar ---
         self.sidebar_collapsed = ctk.CTkFrame(self, width=70, corner_radius=0, fg_color=MENU_COLOR)
         self.sidebar_collapsed.grid(row=0, column=0, sticky="nsw")
         self.sidebar_collapsed.grid_rowconfigure(1, weight=1) # Spacer
-        self.sidebar_collapsed.grid_forget() # Hide it
-        menu_toggle_btn_col = ctk.CTkButton(
-            self.sidebar_collapsed, text="☰", font=ctk.CTkFont(size=20),
-            width=40, fg_color="transparent", hover_color=ICON_HOVER_COLOR,
-            command=self.toggle_sidebar, anchor="center"
-        )
+        menu_toggle_btn_col = ctk.CTkButton(self.sidebar_collapsed, text="☰", font=ctk.CTkFont(size=20), width=40, fg_color="transparent", hover_color=ICON_HOVER_COLOR, command=self.toggle_sidebar, anchor="center")
         menu_toggle_btn_col.grid(row=0, column=0, pady=20, padx=15, sticky="w")
-        self.settings_btn_col = ctk.CTkButton(
-            self.sidebar_collapsed, text="⚙", font=ctk.CTkFont(size=20),
-            width=40, fg_color="transparent", text_color=TEXT_COLOR,
-            corner_radius=8, hover_color=ICON_HOVER_COLOR,
-            command=lambda: [self.toggle_sidebar(), self.show_page("settings")]
-        )
+        self.settings_btn_col = ctk.CTkButton(self.sidebar_collapsed, text="⚙", font=ctk.CTkFont(size=20), width=40, fg_color="transparent", text_color=TEXT_COLOR, corner_radius=8, hover_color=ICON_HOVER_COLOR, command=lambda: [self.toggle_sidebar(), self.show_page("settings")])
         self.settings_btn_col.grid(row=2, column=0, pady=20, padx=15, sticky="s")
-    
+        self.sidebar_collapsed.grid_forget() # Hide it initially
+
     def create_pages(self):
         # --- Page 1: Corrector ---
         self.corrector_page_frame = ctk.CTkFrame(self, corner_radius=0, fg_color=BG_COLOR)
         self.corrector_page_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
         self.corrector_page_frame.grid_columnconfigure((0, 2), weight=1)
         self.corrector_page_frame.grid_columnconfigure(1, weight=0)
-        self.corrector_page_frame.grid_rowconfigure(1, weight=1)
-        ctk.CTkLabel(self.corrector_page_frame, text="Input Text:", font=ctk.CTkFont(size=14)).grid(row=0, column=0, sticky="w", pady=(0, 5))
+        self.corrector_page_frame.grid_rowconfigure(2, weight=1) # Textboxes row
+
+        # Language Indicator (Top Left)
+        self.lang_indicator_label = ctk.CTkLabel(self.corrector_page_frame, text="Model: [None Loaded]", font=ctk.CTkFont(size=12), text_color="#AAAAAA")
+        self.lang_indicator_label.grid(row=0, column=0, sticky="w", pady=(0, 5))
+
+        ctk.CTkLabel(self.corrector_page_frame, text="Input Text:", font=ctk.CTkFont(size=14)).grid(row=1, column=0, sticky="w", pady=(0, 5))
         self.corrector_input_textbox = ctk.CTkTextbox(self.corrector_page_frame, corner_radius=10, fg_color=ENTRY_COLOR, text_color=TEXT_COLOR, font=ctk.CTkFont(size=13))
-        self.corrector_input_textbox.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
+        self.corrector_input_textbox.grid(row=2, column=0, sticky="nsew", padx=(0, 10))
+
         middle_button_frame = ctk.CTkFrame(self.corrector_page_frame, fg_color=BG_COLOR)
-        middle_button_frame.grid(row=1, column=1, sticky="ns", padx=5)
-        self.corrector_button_middle = ctk.CTkButton(
-            middle_button_frame, text=">>", width=50, font=ctk.CTkFont(size=16, weight="bold"),
-            fg_color=BTN_COLOR, text_color=BTN_TEXT_COLOR, hover_color=BTN_HOVER_COLOR,
-            corner_radius=8, command=self.on_correct_click
-        )
+        middle_button_frame.grid(row=2, column=1, sticky="ns", padx=5)
+        self.corrector_button_middle = ctk.CTkButton(middle_button_frame, text=">>", width=50, font=ctk.CTkFont(size=16, weight="bold"), fg_color=BTN_COLOR, text_color=BTN_TEXT_COLOR, hover_color=BTN_HOVER_COLOR, corner_radius=8, command=self.on_correct_click, state="disabled") # Disabled initially
         self.corrector_button_middle.pack(expand=True)
-        ctk.CTkLabel(self.corrector_page_frame, text="Corrected Text:", font=ctk.CTkFont(size=14)).grid(row=0, column=2, sticky="w", pady=(0, 5))
-        self.corrector_output_textbox = ctk.CTkTextbox(self.corrector_page_frame, corner_radius=10, fg_color=ENTRY_COLOR, text_color=TEXT_COLOR, font=ctk.CTkFont(size=13))
-        self.corrector_output_textbox.grid(row=1, column=2, sticky="nsew", padx=(10, 0))
-        self.corrector_output_textbox.configure(state="disabled")
+
+        ctk.CTkLabel(self.corrector_page_frame, text="Corrected Text:", font=ctk.CTkFont(size=14)).grid(row=1, column=2, sticky="w", pady=(0, 5))
+        self.corrector_output_textbox = ctk.CTkTextbox(self.corrector_page_frame, corner_radius=10, fg_color=ENTRY_COLOR, text_color=TEXT_COLOR, font=ctk.CTkFont(size=13), state="disabled")
+        self.corrector_output_textbox.grid(row=2, column=2, sticky="nsew", padx=(10, 0))
 
         # --- Page 2: About Us ---
         self.about_page_frame = ctk.CTkFrame(self, corner_radius=0, fg_color=BG_COLOR)
@@ -221,8 +119,8 @@ class App(ctk.CTk):
                       "University: Rashtriya Raksha University\n\n"
                       "Team Members:\n"
                       "- Jampani Komal\n- [Team Member 2 Name]\n- [Team Member 3 Name]\n\n"
-                      "This application uses a pre-trained T5 Transformer model to provide\n"
-                      "deep contextual and grammatical corrections.")
+                      "This application uses pre-trained T5 Transformer models\n"
+                      "to provide contextual grammar corrections and spelling translation.")
         ctk.CTkLabel(self.about_page_frame, text=about_text, font=ctk.CTkFont(size=14), justify="left").pack(pady=10, padx=20, fill="x", anchor="w")
         self.about_page_frame.grid_forget()
 
@@ -230,6 +128,8 @@ class App(ctk.CTk):
         self.settings_page_frame = ctk.CTkFrame(self, corner_radius=0, fg_color=BG_COLOR)
         self.settings_page_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
         ctk.CTkLabel(self.settings_page_frame, text="Settings", font=ctk.CTkFont(size=24, weight="bold")).pack(pady=20, anchor="w")
+
+        # --- Appearance Settings ---
         appearance_frame = ctk.CTkFrame(self.settings_page_frame, fg_color=ENTRY_COLOR, corner_radius=10)
         appearance_frame.pack(fill="x", padx=20, pady=10, anchor="w")
         ctk.CTkLabel(appearance_frame, text="Appearance Mode", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(10, 5), padx=20, anchor="w")
@@ -239,9 +139,46 @@ class App(ctk.CTk):
         radio_dark.pack(pady=5, padx=20, anchor="w")
         radio_system = ctk.CTkRadioButton(appearance_frame, text="Adapt to Device (System)", variable=self.theme_radio_var, value="system", command=self.change_theme)
         radio_system.pack(pady=(5, 10), padx=20, anchor="w")
-        self.settings_page_frame.grid_forget()
 
-    # --- 4. CORE APP FUNCTIONS ---
+        # --- Language Model Settings ---
+        language_frame = ctk.CTkFrame(self.settings_page_frame, fg_color=ENTRY_COLOR, corner_radius=10)
+        language_frame.pack(fill="x", padx=20, pady=10, anchor="w")
+        ctk.CTkLabel(language_frame, text="Language Models", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(10, 15), padx=20, anchor="w")
+
+        for i, (lang_code, details) in enumerate(SUPPORTED_MODELS.items()):
+            model_frame = ctk.CTkFrame(language_frame, fg_color="transparent")
+            model_frame.pack(fill="x", padx=20, pady=5)
+            model_frame.grid_columnconfigure(1, weight=1) # Label expands
+
+            lang_radio = ctk.CTkRadioButton(
+                model_frame, text=details["name"], width=200,
+                value=lang_code,
+                command=lambda lc=lang_code: self.load_selected_model(lc)
+            )
+            lang_radio.grid(row=0, column=0, sticky="w")
+
+            self.language_status_labels[lang_code] = ctk.CTkLabel(model_frame, text="Status: Unknown", font=ctk.CTkFont(size=12), text_color="#AAAAAA")
+            self.language_status_labels[lang_code].grid(row=0, column=1, sticky="w", padx=10)
+
+            self.language_progress_bars[lang_code] = ctk.CTkProgressBar(model_frame, width=150)
+            self.language_progress_bars[lang_code].set(0) # Start hidden/empty
+            # self.language_progress_bars[lang_code].grid(row=0, column=2, sticky="e", padx=5) # Grid later if needed
+
+            if details["hf_id"]: # Only show download if model exists
+                self.language_buttons[lang_code] = ctk.CTkButton(
+                    model_frame, text="⬇️", width=40,
+                    fg_color=DOWNLOAD_BTN_COLOR, hover_color=DOWNLOAD_BTN_HOVER,
+                    font=ctk.CTkFont(size=16),
+                    command=lambda lc=lang_code: self.start_download_thread(lc)
+                )
+                self.language_buttons[lang_code].grid(row=0, column=3, sticky="e")
+            else:
+                 ctk.CTkLabel(model_frame, text="(Coming Soon)", font=ctk.CTkFont(size=12, slant="italic"), text_color="#AAAAAA").grid(row=0, column=3, sticky="e", padx=10)
+
+
+        self.settings_page_frame.grid_forget() # Hide it initially
+
+    # --- CORE APP FUNCTIONS ---
     def toggle_sidebar(self):
         if self.sidebar_expanded.winfo_viewable():
             self.sidebar_expanded.grid_forget()
@@ -251,12 +188,15 @@ class App(ctk.CTk):
             self.sidebar_expanded.grid(row=0, column=0, sticky="nsw")
 
     def show_page(self, page_name):
+        # Hide all pages
         self.corrector_page_frame.grid_forget()
         self.about_page_frame.grid_forget()
         self.settings_page_frame.grid_forget()
+        # Reset button styles
         self.corrector_btn_exp.configure(fg_color="transparent", text_color=TEXT_COLOR)
         self.about_btn_exp.configure(fg_color="transparent", text_color=TEXT_COLOR)
         self.settings_btn_exp.configure(fg_color="transparent", text_color=TEXT_COLOR)
+        # Show selected page and highlight button
         if page_name == "corrector":
             self.corrector_page_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
             self.corrector_btn_exp.configure(fg_color=BTN_COLOR, text_color=BTN_TEXT_COLOR)
@@ -272,16 +212,162 @@ class App(ctk.CTk):
         ctk.set_appearance_mode(mode)
         print(f"Appearance mode changed to: {mode}")
 
-    def on_correct_click(self):
-        if not self.model: return # Don't do anything if model isn't loaded
-        input_text = self.corrector_input_textbox.get("1.0", "end-1c")
-        if len(input_text.strip()) < 1: return
+    # --- Language Model Handling ---
+
+    def update_language_statuses(self):
+        """ Checks download status for all models and updates the GUI. """
+        for lang_code, details in SUPPORTED_MODELS.items():
+            status_label = self.language_status_labels.get(lang_code)
+            download_button = self.language_buttons.get(lang_code)
             
-        print(f"Original text: '{input_text.strip()}'")
+            if not status_label: continue # Skip if GUI not fully ready
+
+            if details["hf_id"] is None:
+                 status_label.configure(text="Status: Not Available")
+                 if download_button: download_button.grid_forget()
+                 continue
+
+            if check_if_model_downloaded(lang_code):
+                status_label.configure(text="Status: Downloaded", text_color="lightgreen")
+                if download_button: download_button.grid_forget() # Hide download button
+            else:
+                status_label.configure(text="Status: Not Downloaded", text_color="#AAAAAA")
+                if download_button: download_button.grid(row=0, column=3, sticky="e") # Show download button
+
+    def start_download_thread(self, lang_code):
+        """ Starts downloading a model in a background thread. """
+        if self.is_loading:
+            messagebox.showwarning("Busy", "Another operation is already in progress.")
+            return
+            
+        btn = self.language_buttons.get(lang_code)
+        prog_bar = self.language_progress_bars.get(lang_code)
+        status_label = self.language_status_labels.get(lang_code)
+
+        if btn: btn.configure(state="disabled", text="...")
+        if prog_bar:
+            prog_bar.grid(row=0, column=2, sticky="e", padx=5) # Show progress bar
+            prog_bar.set(0)
+        if status_label: status_label.configure(text="Status: Downloading...", text_color="yellow")
+
+        self.is_loading = True
+        download_thread = threading.Thread(
+            target=self.download_model_thread,
+            args=(lang_code,),
+            daemon=True
+        )
+        download_thread.start()
+
+    def download_model_thread(self, lang_code):
+        """ --- RUNS IN BACKGROUND THREAD --- """
+        print(f"[Thread] Starting download for {lang_code}...")
+        
+        # Define the callback function for progress updates
+        def progress_update(message, percentage):
+            # Use 'after' to safely update GUI from this thread
+            self.after(0, self.update_download_progress, lang_code, message, percentage)
+
+        success = download_model_for_language(lang_code, progress_callback=progress_update)
+        
+        self.after(0, self.on_download_complete, lang_code, success)
+
+    def update_download_progress(self, lang_code, message, percentage):
+        """ --- RUNS IN MAIN GUI THREAD --- Updates progress bar and status. """
+        prog_bar = self.language_progress_bars.get(lang_code)
+        status_label = self.language_status_labels.get(lang_code)
+        
+        if status_label: status_label.configure(text=f"Status: {message}")
+        if prog_bar: prog_bar.set(percentage / 100)
+
+    def on_download_complete(self, lang_code, success):
+        """ --- RUNS IN MAIN GUI THREAD --- Called when download finishes. """
+        self.is_loading = False
+        prog_bar = self.language_progress_bars.get(lang_code)
+        btn = self.language_buttons.get(lang_code)
+
+        if prog_bar: prog_bar.grid_forget() # Hide progress bar
+        if btn: btn.configure(state="normal", text="⬇️") # Re-enable if failed
+        
+        self.update_language_statuses() # Refresh status labels/buttons
+
+        if success:
+            messagebox.showinfo("Download Complete", f"Model for {SUPPORTED_MODELS[lang_code]['name']} downloaded successfully.")
+        else:
+            messagebox.showerror("Download Failed", f"Could not download model for {SUPPORTED_MODELS[lang_code]['name']}. Check console for errors.")
+
+    def load_selected_model(self, lang_code, initial_load=False):
+        """ Attempts to load the model for the selected language. """
+        if self.is_loading:
+             if not initial_load: messagebox.showwarning("Busy", "Please wait for the current operation to finish.")
+             return
+             
+        if not check_if_model_downloaded(lang_code):
+            if not initial_load: messagebox.showerror("Error", f"Model for {SUPPORTED_MODELS[lang_code]['name']} is not downloaded. Please download it from Settings.")
+            self.update_corrector_status(f"Model: [{SUPPORTED_MODELS[lang_code]['name']} - Not Downloaded]", error=True)
+            self.model = None # Unload any previous model
+            self.tokenizer = None
+            self.current_lang_code = None
+            return
+
+        if self.current_lang_code == lang_code:
+            print(f"Model for {lang_code} already loaded.")
+            return # Avoid reloading the same model
+
+        self.is_loading = True
+        self.update_corrector_status(f"Loading Model: [{SUPPORTED_MODELS[lang_code]['name']}]...", loading=True)
+
+        # Load in background to prevent freezing
+        load_thread = threading.Thread(target=self.load_model_thread, args=(lang_code,), daemon=True)
+        load_thread.start()
+
+    def load_model_thread(self, lang_code):
+        """ --- RUNS IN BACKGROUND --- """
+        print(f"[Thread] Starting model load for {lang_code}...")
+        new_model, new_tokenizer = load_model_from_disk(lang_code)
+        self.after(0, self.on_load_model_complete, lang_code, new_model, new_tokenizer)
+
+    def on_load_model_complete(self, lang_code, loaded_model, loaded_tokenizer):
+         """ --- RUNS IN MAIN GUI --- """
+         self.is_loading = False
+         if loaded_model and loaded_tokenizer:
+             self.model = loaded_model
+             self.tokenizer = loaded_tokenizer
+             self.current_lang_code = lang_code
+             self.update_corrector_status(f"Model: [{SUPPORTED_MODELS[lang_code]['name']}] - Ready")
+             messagebox.showinfo("Model Loaded", f"{SUPPORTED_MODELS[lang_code]['name']} model loaded successfully.")
+         else:
+             self.update_corrector_status(f"Error loading model: [{SUPPORTED_MODELS[lang_code]['name']}]", error=True)
+             self.model = None
+             self.tokenizer = None
+             self.current_lang_code = None
+             messagebox.showerror("Load Failed", f"Could not load model for {SUPPORTED_MODELS[lang_code]['name']}. Files might be corrupt.")
+
+    def update_corrector_status(self, message, loading=False, error=False):
+        """ Updates the language indicator label and button states. """
+        self.lang_indicator_label.configure(text=message)
+        if loading or error or not self.model:
+            self.corrector_button_middle.configure(state="disabled")
+            self.corrector_input_textbox.configure(state="disabled")
+            self.lang_indicator_label.configure(text_color="#AAAAAA" if loading else "red" if error else "#AAAAAA")
+        else:
+            self.corrector_button_middle.configure(state="normal")
+            self.corrector_input_textbox.configure(state="normal")
+            self.lang_indicator_label.configure(text_color="lightgreen")
+
+    def on_correct_click(self):
+        """ Handles the correction button click, including warnings. """
+        if not self.model or not self.tokenizer or not self.current_lang_code:
+            messagebox.showwarning("No Model Loaded", "Please select and ensure a language model is downloaded and loaded via the Settings page before correcting text.")
+            return
+
+        input_text = self.corrector_input_textbox.get("1.0", "end-1c").strip()
+        if len(input_text) < 1: return
+
+        print(f"Original text: '{input_text}'")
         self.corrector_button_middle.configure(text="...", state="disabled")
         self.update_idletasks()
-        
-        # --- HYBRID LOGIC ---
+
+        # --- HYBRID SPELL CHECK ---
         spell = SpellChecker(case_sensitive=False)
         spell.word_frequency.add("komal")
         spell.word_frequency.add("jampani")
@@ -301,15 +387,16 @@ class App(ctk.CTk):
         spell_checked_text = " ".join(corrected_words)
         print(f"Spell-checked text: '{spell_checked_text}'")
 
-        corrected_text = correct_grammar(spell_checked_text, self.model, self.tokenizer)
-        
+        # --- GRAMMAR/TRANSLATION CHECK ---
+        corrected_text = correct_grammar(spell_checked_text, self.model, self.tokenizer, self.current_lang_code)
+
         self.corrector_output_textbox.configure(state="normal")
         self.corrector_output_textbox.delete("1.0", tk.END)
         self.corrector_output_textbox.insert("1.0", corrected_text)
         self.corrector_output_textbox.configure(state="disabled")
         self.corrector_button_middle.configure(text=">>", state="normal")
 
-# --- 5. START THE APPLICATION ---
+# --- START THE APPLICATION ---
 if __name__ == "__main__":
     app = App()
     app.mainloop()

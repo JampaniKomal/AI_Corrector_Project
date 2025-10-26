@@ -49,6 +49,8 @@ secrets.json
 # Keep top-level `model/` folder tracked, but ignore a nested `model` folder inside it
 # (ignores `model/model/` and its contents)
 /model/model/
+# Also ignore the `models/` directory at repository root
+models/
 *.pt
 *.pth
 *.bin
