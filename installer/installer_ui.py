@@ -52,13 +52,14 @@ class InstallerApp(ctk.CTk):
         self.APP_NAME = "AI Corrector"
         self.APP_VERSION = "v2.3.0"
         self.source_folder = source_folder or self.get_source_folder()
-        self.install_location = os.path.join(os.environ.get('PROGRAMFILES', 'C:\\Program Files'), 'AI Corrector')
+        # Use AppData instead of Program Files (no admin rights needed)
+        self.install_location = os.path.join(os.environ.get('LOCALAPPDATA', os.path.expanduser('~')), 'AI Corrector')
         self.current_page = 0
         self.is_installing = False
         
         # Window setup
         self.title(f"{self.APP_NAME} {self.APP_VERSION} - Setup")
-        self.geometry("700x500")
+        self.geometry("600x600")  # 1:1 ratio
         self.resizable(False, False)
         
         # Set theme
@@ -206,14 +207,14 @@ class InstallerApp(ctk.CTk):
         
         self.location_entry = ctk.CTkEntry(
             loc_frame,
-            width=450,
+            width=350,
             height=35,
             fg_color=self.current_theme["ENTRY_COLOR"],
             text_color=self.current_theme["TEXT_COLOR"],
             border_color=self.current_theme["BORDER_COLOR"],
             border_width=1,
             corner_radius=8,
-            font=ctk.CTkFont(size=12)
+            font=ctk.CTkFont(size=11)
         )
         self.location_entry.pack(side="left", padx=(0, 10))
         self.location_entry.insert(0, self.install_location)
@@ -307,7 +308,7 @@ class InstallerApp(ctk.CTk):
         # Progress bar
         self.progress_bar = ctk.CTkProgressBar(
             page,
-            width=600,
+            width=500,
             height=20,
             corner_radius=10,
             progress_color=self.current_theme["PROGRESS_COLOR"],
@@ -482,7 +483,10 @@ class InstallerApp(ctk.CTk):
             
             # Step 1: Create installation directory
             self.update_progress(current_step / total_steps, "Creating installation directory...", "")
-            os.makedirs(self.install_location, exist_ok=True)
+            try:
+                os.makedirs(self.install_location, exist_ok=True)
+            except PermissionError as e:
+                raise Exception(f"Permission denied. Please choose a different installation location.\n\nTry: {os.path.join(os.environ.get('LOCALAPPDATA', '~'), 'AI Corrector')}")
             current_step += 1
             
             # Step 2: Copy application files
@@ -542,8 +546,11 @@ class InstallerApp(ctk.CTk):
             self.after(500, self.installation_complete)
             
         except Exception as e:
-            self.after(0, lambda: messagebox.showerror("Installation Error", f"An error occurred during installation:\n{str(e)}"))
-            self.after(0, self.quit)
+            error_msg = str(e)
+            self.after(0, lambda: self.show_error_dialog("Installation Error", f"An error occurred during installation:\n\n{error_msg}"))
+            self.is_installing = False
+            self.after(0, lambda: self.show_page(1))  # Go back to location page
+            self.after(0, self.update_navigation_buttons)
     
     def update_progress(self, progress, status, details):
         """Update progress bar and status (thread-safe)"""
@@ -681,6 +688,56 @@ class InstallerApp(ctk.CTk):
                 print(f"Error launching app: {e}")
         
         self.quit()
+    
+    def show_error_dialog(self, title, message):
+        """Show themed error dialog"""
+        error_window = ctk.CTkToplevel(self)
+        error_window.title(title)
+        error_window.geometry("450x200")
+        error_window.configure(fg_color=self.current_theme["BG_COLOR"])
+        error_window.resizable(False, False)
+        error_window.grab_set()
+        error_window.transient(self)
+        
+        # Center the window
+        error_window.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - error_window.winfo_width()) // 2
+        y = self.winfo_y() + (self.winfo_height() - error_window.winfo_height()) // 2
+        error_window.geometry(f"+{x}+{y}")
+        
+        # Error icon
+        icon = ctk.CTkLabel(
+            error_window,
+            text="❌",
+            font=ctk.CTkFont(size=36),
+            text_color="red"
+        )
+        icon.pack(pady=(20, 10))
+        
+        # Message
+        msg = ctk.CTkLabel(
+            error_window,
+            text=message,
+            font=ctk.CTkFont(size=12),
+            text_color=self.current_theme["TEXT_COLOR"],
+            wraplength=400,
+            justify="center"
+        )
+        msg.pack(pady=10, padx=20)
+        
+        # OK button
+        ok_btn = ctk.CTkButton(
+            error_window,
+            text="OK",
+            width=100,
+            command=error_window.destroy,
+            fg_color=self.current_theme["BTN_COLOR"],
+            text_color=self.current_theme["BTN_TEXT_COLOR"],
+            hover_color=self.current_theme["BTN_HOVER_COLOR"],
+            corner_radius=8,
+            font=ctk.CTkFont(size=13, weight="bold")
+        )
+        ok_btn.pack(pady=20)
     
     def on_closing(self):
         """Handle window close"""

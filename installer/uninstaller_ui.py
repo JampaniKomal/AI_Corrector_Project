@@ -61,7 +61,7 @@ class UninstallerApp(ctk.CTk):
         
         # Window setup
         self.title(f"Uninstall {self.APP_NAME}")
-        self.geometry("600x400")
+        self.geometry("500x500")  # 1:1 ratio
         self.resizable(False, False)
         
         # Set theme
@@ -185,7 +185,7 @@ class UninstallerApp(ctk.CTk):
         # Progress bar
         self.progress_bar = ctk.CTkProgressBar(
             page,
-            width=500,
+            width=400,
             height=20,
             corner_radius=10,
             progress_color=self.current_theme["PROGRESS_COLOR"],
