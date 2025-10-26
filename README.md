@@ -143,41 +143,52 @@ python main.py
    - Dark Mode
    - Adapt to Device (System)
 
-## Building Executable
+## Building Executable & Installer
 
-### Step 1: Build Main Application
+### Step 1: Build Main Application with PyInstaller
 
+The application is already built using the PyInstaller spec file:
+
+```bash
+pyinstaller config\AICorrector.spec
+```
+
+Or manually:
 ```bash
 pyinstaller -F --noconsole --name AICorrector --paths src --collect-all torch --collect-all transformers --collect-all customtkinter --collect-all spellchecker --collect-all PIL --add-data "assets\\app_logo.ico;assets" --icon assets\\app_logo.ico main.py
 ```
 
-The executable will be created in the `dist/` folder (~200MB).
+The executable will be created in the `dist/` folder (~204 MB).
 
-### Step 2: Create Installer with NSIS
+### Step 2: Create Professional Installer with Inno Setup
 
-**Install NSIS first:**
-Download from [nsis.sourceforge.io](https://nsis.sourceforge.io/Download) and install it.
+**Install Inno Setup:**
+Download from [jrsoftware.org/isinfo.php](https://jrsoftware.org/isinfo.php) and install it.
 
-**Add NSIS to PATH (optional but recommended):**
-- After installation, add NSIS to your system PATH
-- Default installation path: `C:\Program Files (x86)\NSIS`
-- This allows you to run `makensis.exe` from any directory
-
-**Then compile via CLI:**
-```bash
-makensis.exe config\installer.nsi
+**Build the installer:**
+```powershell
+& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" config\AICorrector_Installer.iss
 ```
 
-The installer will be created as `dist\AICorrector-Setup-v2.3.0.exe`
+The installer will be created as `dist\AICorrector-Setup-v2.3.0.exe` (~203 MB)
+
+**Installer Features:**
+- Professional Windows wizard interface
+- Automatic shortcuts (Start Menu + Desktop)
+- Built-in uninstaller
+- Add/Remove Programs integration
+- Custom installation directory
+- Models folder auto-creation
+- Post-install launch option
 
 ### Distribution
 
 Users download and run `AICorrector-Setup-v2.3.0.exe` - a professional installer with:
-- ✅ Black & White theme
-- ✅ Bundled uninstaller
-- ✅ Start Menu shortcuts
-- ✅ Desktop shortcut
-- ✅ Add/Remove Programs support
+- Black & White theme
+- Bundled uninstaller
+- Start Menu shortcuts
+- Desktop shortcut
+- Add/Remove Programs support
 
 ## Team
 
