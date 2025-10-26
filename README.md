@@ -6,7 +6,7 @@
 
 A powerful AI-powered contextual grammar and spelling correction application built with T5 Transformer models and a modern GUI interface.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [About](#about)
 - [Features](#features)
@@ -15,9 +15,8 @@ A powerful AI-powered contextual grammar and spelling correction application bui
 - [Usage](#usage)
 - [Building Executable](#building-executable)
 - [Team](#team)
-- [License](#license)
 
-## 🎯 About
+## About
 
 AI Corrector is an intelligent text correction application developed as part of the **Artificial Intelligence (G5AD24ARI)** course at **Rashtriya Raksha University**. The application leverages pre-trained T5 Transformer models to provide contextual grammar corrections and spelling translations with high accuracy.
 
@@ -27,17 +26,17 @@ AI Corrector is an intelligent text correction application developed as part of 
 - **English (UK)** - Spelling translation from US to UK English
 - **English (IN)** - Coming soon
 
-## ✨ Features
+## Features
 
-- 🧠 **AI-Powered Corrections** - Uses state-of-the-art T5 transformer models
-- 🎨 **Modern UI** - Built with CustomTkinter for a beautiful, responsive interface
-- 🌓 **Theme Support** - Dark mode, Light mode, and System-adaptive themes
-- 📥 **Model Management** - Easy download and management of language models
-- 🔄 **Multi-Language** - Support for multiple English variants
-- ⚡ **Fast Processing** - Efficient model loading and inference
-- 💾 **Local Processing** - All corrections run locally for privacy
+- **AI-Powered Corrections** - Uses state-of-the-art T5 transformer models
+- **Modern UI** - Built with CustomTkinter for a beautiful, responsive interface
+- **Theme Support** - Dark mode, Light mode, and System-adaptive themes
+- **Model Management** - Easy download and management of language models
+- **Multi-Language** - Support for multiple English variants
+- **Fast Processing** - Efficient model loading and inference
+- **Local Processing** - All corrections run locally for privacy
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 AI_Corrector_Project/
@@ -69,7 +68,7 @@ AI_Corrector_Project/
 └── .gitignore                   # Git ignore rules
 ```
 
-## 🚀 Installation
+## Installation
 
 ### Prerequisites
 
@@ -104,7 +103,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Step 4: Download Language Models
+### Step 4: Download Language Models [Optional]
 
 Run the application and navigate to **Settings** → **Language Models** to download your desired language model, or use the download script:
 
@@ -112,7 +111,7 @@ Run the application and navigate to **Settings** → **Language Models** to down
 python scripts/download_model.py
 ```
 
-## 💻 Usage
+## Usage
 
 ### Running the Application
 
@@ -138,7 +137,7 @@ python main.py
    - Dark Mode
    - Adapt to Device (System)
 
-## 📦 Building Executable
+## Building Executable
 
 ### Using PyInstaller
 
@@ -156,18 +155,16 @@ The executable will be created in the `dist/` folder.
 
 The installer will be created in the project root directory.
 
-## 👥 Team
+## Team
 
 **Project Team:**
 - **Jampani Komal** - Lead Developer
-- [Team Member 2 Name] - Role
-- [Team Member 3 Name] - Role
 
 **Course:** Artificial Intelligence (G5AD24ARI)  
 **University:** Rashtriya Raksha University  
 **Academic Year:** 2024-2025
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 - **Python 3.8+**
 - **Transformers** - Hugging Face Transformers library
@@ -177,22 +174,12 @@ The installer will be created in the project root directory.
 - **PyInstaller** - Executable builder
 - **Inno Setup** - Windows installer creator
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Hugging Face for providing pre-trained models
 - The Transformers library team
 - CustomTkinter developers
-- Rashtriya Raksha University faculty and staff
-
-## 📞 Contact
-
-For questions or support, please contact:
-- **Repository:** [https://github.com/JAMPANIKOMAL/AI_Corrector_Project](https://github.com/JAMPANIKOMAL/AI_Corrector_Project)
-- **Email:** [Your Email]
+- Gemini
 
 ---
 
