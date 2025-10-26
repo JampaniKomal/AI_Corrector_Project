@@ -59,7 +59,7 @@ class InstallerApp(ctk.CTk):
         
         # Window setup
         self.title(f"{self.APP_NAME} {self.APP_VERSION} - Setup")
-        self.geometry("550x550")  # Smaller 1:1 ratio
+        self.geometry("450x450")  # 33% smaller (was 550x550)
         self.resizable(False, False)
         
         # Set custom icon
@@ -67,6 +67,8 @@ class InstallerApp(ctk.CTk):
             icon_path = os.path.join(self.source_folder, "assets", "app_logo.ico")
             if os.path.exists(icon_path):
                 self.iconbitmap(icon_path)
+                # Also set as window icon
+                self.after(100, lambda: self.iconbitmap(icon_path))
         except Exception as e:
             print(f"Could not load icon: {e}")
         
@@ -215,14 +217,14 @@ class InstallerApp(ctk.CTk):
         
         self.location_entry = ctk.CTkEntry(
             loc_frame,
-            width=320,
-            height=35,
+            width=260,
+            height=32,
             fg_color=self.current_theme["ENTRY_COLOR"],
             text_color=self.current_theme["TEXT_COLOR"],
             border_color=self.current_theme["BORDER_COLOR"],
             border_width=1,
             corner_radius=8,
-            font=ctk.CTkFont(size=10)
+            font=ctk.CTkFont(size=9)
         )
         self.location_entry.pack(side="left", padx=(0, 10))
         self.location_entry.insert(0, self.install_location)
@@ -319,10 +321,10 @@ class InstallerApp(ctk.CTk):
         )
         title.pack(pady=(60, 30), padx=40, anchor="w")
         
-        # Progress bar
+        # Progress bar - initially hidden
         self.progress_bar = ctk.CTkProgressBar(
             page,
-            width=450,
+            width=350,
             height=20,
             corner_radius=10,
             progress_color=self.current_theme["PROGRESS_COLOR"],
@@ -330,17 +332,17 @@ class InstallerApp(ctk.CTk):
             border_width=1,
             border_color=self.current_theme["BORDER_COLOR"]
         )
-        self.progress_bar.pack(pady=30, padx=40)
         self.progress_bar.set(0)
+        # Don't pack it yet - will pack when installation starts
         
         # Status label
         self.status_label = ctk.CTkLabel(
             page,
-            text="Preparing installation...",
+            text="Click Install to begin...",
             font=ctk.CTkFont(size=13),
             text_color=self.current_theme["TEXT_COLOR"]
         )
-        self.status_label.pack(pady=10, padx=40)
+        self.status_label.pack(pady=80, padx=40)
         
         # Details label
         self.details_label = ctk.CTkLabel(
@@ -495,6 +497,10 @@ class InstallerApp(ctk.CTk):
         """Start installation process in background thread"""
         self.is_installing = True
         self.update_navigation_buttons()
+        
+        # NOW show and pack the progress bar
+        self.progress_bar.pack(pady=20, padx=40)
+        self.status_label.pack_configure(pady=10)  # Adjust spacing
         
         install_thread = threading.Thread(target=self.install_files, daemon=True)
         install_thread.start()

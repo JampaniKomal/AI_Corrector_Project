@@ -61,7 +61,7 @@ class UninstallerApp(ctk.CTk):
         
         # Window setup
         self.title(f"Uninstall {self.APP_NAME}")
-        self.geometry("480x480")  # Smaller 1:1 ratio
+        self.geometry("450x450")  # Same size as installer
         self.resizable(False, False)
         
         # Set custom icon
@@ -69,6 +69,8 @@ class UninstallerApp(ctk.CTk):
             icon_path = os.path.join(self.install_dir, "assets", "app_logo.ico")
             if os.path.exists(icon_path):
                 self.iconbitmap(icon_path)
+                # Also set as window icon
+                self.after(100, lambda: self.iconbitmap(icon_path))
         except Exception as e:
             print(f"Could not load icon: {e}")
         
@@ -141,12 +143,16 @@ class UninstallerApp(ctk.CTk):
         """Page 0: Confirm uninstallation"""
         page = ctk.CTkFrame(self.main_frame, corner_radius=0, fg_color=self.current_theme["BG_COLOR"])
         
-        # Warning icon
+        # Warning icon - using simple text instead of emoji
         icon_label = ctk.CTkLabel(
             page,
-            text="⚠",
-            font=ctk.CTkFont(size=48),
-            text_color="orange"
+            text="!",
+            font=ctk.CTkFont(size=56, weight="bold"),
+            text_color="orange",
+            width=80,
+            height=80,
+            corner_radius=40,
+            fg_color="#FF8C00"
         )
         icon_label.pack(pady=(60, 20))
         
@@ -154,10 +160,10 @@ class UninstallerApp(ctk.CTk):
         title = ctk.CTkLabel(
             page,
             text=f"Uninstall {self.APP_NAME}?",
-            font=ctk.CTkFont(size=20, weight="bold"),
+            font=ctk.CTkFont(size=18, weight="bold"),
             text_color=self.current_theme["TEXT_COLOR"]
         )
-        title.pack(pady=(0, 20))
+        title.pack(pady=(0, 15))
         
         # Description
         desc_text = (
@@ -170,11 +176,11 @@ class UninstallerApp(ctk.CTk):
         desc = ctk.CTkLabel(
             page,
             text=desc_text,
-            font=ctk.CTkFont(size=12),
+            font=ctk.CTkFont(size=11),
             text_color=self.current_theme["TEXT_COLOR"],
             justify="center"
         )
-        desc.pack(pady=10)
+        desc.pack(pady=5)
         
         return page
     
@@ -193,7 +199,7 @@ class UninstallerApp(ctk.CTk):
         # Progress bar
         self.progress_bar = ctk.CTkProgressBar(
             page,
-            width=380,
+            width=350,
             height=20,
             corner_radius=10,
             progress_color=self.current_theme["PROGRESS_COLOR"],
@@ -219,12 +225,16 @@ class UninstallerApp(ctk.CTk):
         """Page 2: Uninstallation complete"""
         page = ctk.CTkFrame(self.main_frame, corner_radius=0, fg_color=self.current_theme["BG_COLOR"])
         
-        # Success icon
+        # Success icon - using checkmark in circle
         icon_label = ctk.CTkLabel(
             page,
             text="✓",
-            font=ctk.CTkFont(size=56),
-            text_color="lightgreen"
+            font=ctk.CTkFont(size=56, weight="bold"),
+            text_color="white",
+            width=80,
+            height=80,
+            corner_radius=40,
+            fg_color="green"
         )
         icon_label.pack(pady=(80, 20))
         
@@ -232,10 +242,10 @@ class UninstallerApp(ctk.CTk):
         title = ctk.CTkLabel(
             page,
             text="Uninstallation Complete",
-            font=ctk.CTkFont(size=22, weight="bold"),
+            font=ctk.CTkFont(size=20, weight="bold"),
             text_color=self.current_theme["TEXT_COLOR"]
         )
-        title.pack(pady=(0, 30))
+        title.pack(pady=(0, 25))
         
         # Description
         desc_text = (
@@ -246,7 +256,7 @@ class UninstallerApp(ctk.CTk):
         desc = ctk.CTkLabel(
             page,
             text=desc_text,
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=12),
             text_color=self.current_theme["TEXT_COLOR"],
             justify="center"
         )
