@@ -58,6 +58,7 @@ AI_Corrector_Project/
 │
 ├── config/                       # Configuration files
 │   ├── AICorrector.spec          # PyInstaller spec file
+│   ├── installer.nsi             # NSIS installer script
 │   └── installer_script.iss      # Old Inno Setup script (deprecated)
 │
 ├── assets/                       # Application assets
@@ -152,32 +153,31 @@ pyinstaller -F --noconsole --name AICorrector --paths src --collect-all torch --
 
 The executable will be created in the `dist/` folder (~200MB).
 
-### Step 2: Build All-in-One Installer (includes app inside)
+### Step 2: Create Installer with NSIS
 
+**Install NSIS first:**
+Download from [nsis.sourceforge.io](https://nsis.sourceforge.io/Download) and install it.
+
+**Add NSIS to PATH (optional but recommended):**
+- After installation, add NSIS to your system PATH
+- Default installation path: `C:\Program Files (x86)\NSIS`
+- This allows you to run `makensis.exe` from any directory
+
+**Then compile via CLI:**
 ```bash
-pyinstaller -F --noconsole --name AICorrector-Setup --collect-all customtkinter --add-data "dist\\AICorrector.exe;." --icon assets\\app_logo.ico --specpath config scripts/setup.py
+makensis.exe config\installer.nsi
 ```
 
-This bundles `AICorrector.exe` **inside** the installer.
+The installer will be created as `dist\AICorrector-Setup-v2.3.0.exe`
 
 ### Distribution
 
-After building:
-- `dist/AICorrector-Setup.exe` - **Single file (~200MB)** containing everything
-  - Users download this ONE file
-  - Run it to install
-  - Run it again to uninstall
-
-### Universal Setup Features
-
-- **Smart Detection** - Automatically detects if app is installed
-- **Install Mode** - Welcome → Options → Installing → Complete
-- **Uninstall Mode** - Confirm → Uninstalling → Complete
-- **Modern Black & White Theme** - Matches the application UI
-- **Desktop Shortcut** - Optional during installation
-- **Start Menu Entry** - Automatic integration
-- **Progress Tracking** - Real-time installation/uninstallation progress
-- **Clean Removal** - Safely removes all files on uninstall
+Users download and run `AICorrector-Setup-v2.3.0.exe` - a professional installer with:
+- ✅ Black & White theme
+- ✅ Bundled uninstaller
+- ✅ Start Menu shortcuts
+- ✅ Desktop shortcut
+- ✅ Add/Remove Programs support
 
 ## Team
 
