@@ -289,23 +289,6 @@ Copy-Item "README.md" -Destination "release\README.txt"
 .\release\AICorrector-Setup-v2.3.0.exe
 ```
 
----
-
-### Release Checklist
-
-Before distributing:
-
-- [ ] Main app executable built (`dist/AICorrector.exe`)
-- [ ] Installer executable built (`installer/dist/AICorrector-Setup-v2.3.0.exe`)
-- [ ] Test installer on clean machine
-- [ ] Verify shortcuts work correctly
-- [ ] Test uninstaller removes all files
-- [ ] Check Add/Remove Programs entry
-- [ ] Verify app launches after installation
-- [ ] Test app functionality (grammar correction)
-- [ ] Ensure all assets (icon, logo) display correctly
-
----
 
 ### Distribution Files
 
