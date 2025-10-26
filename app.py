@@ -1,17 +1,21 @@
 import tkinter as tk
-from tkinter import scrolledtext, font  # Import 'font' for custom fonts
+from tkinter import scrolledtext, font
+
+# --- Import our AI functions ---
+# We keep this part exactly the same.
 from correct import initialize_model, correct_grammar
 
 # --- 1. THEME & FONT DEFINITIONS ---
-# Your "Buttero Violet" theme colors
-BG_COLOR = "#2E1A47"     # Dark violet background
-TEXT_COLOR = "#E1D9E9"    # Light lavender text
-ENTRY_BG = "#3B2A5E"    # Lighter violet for text boxes
-BTN_COLOR = "#E040FB"    # Vibrant magenta button
-BTN_TEXT = "#FFFFFF"    # White button text
+# New Black & White minimalist theme
+BG_COLOR = "#000000"     # Black background
+FG_COLOR = "#FFFFFF"     # White text
+MENU_BG = "#1C1C1C"    # A slightly lighter black for the menu
+ENTRY_BG = "#1C1C1C"    # Dark grey for text boxes
+BORDER_COLOR = "#FFFFFF" # White border for emphasis
 
 # Define our fonts
-TITLE_FONT = ("Helvetica", 16, "bold")
+TITLE_FONT = ("Helvetica", 18, "bold")
+MENU_FONT = ("Helvetica", 11, "bold")
 LABEL_FONT = ("Helvetica", 12)
 TEXT_FONT = ("Helvetica", 11)
 
@@ -22,21 +26,21 @@ model, tokenizer = initialize_model()
 print("Model ready. Starting GUI...")
 
 
-# --- 3. DEFINE THE CORE APP FUNCTION (Same as before) ---
+# --- 3. DEFINE THE CORE APP FUNCTION ---
 def on_correct_button_click():
     """
     This function is called when the user clicks the "Correct" button.
     """
     input_text = input_textbox.get("1.0", tk.END)
     
-    # Simple check so we don't run the AI on empty text
     if len(input_text.strip()) < 1:
         return
         
     print(f"Correcting text: '{input_text.strip()}'")
     
     # Update button to show "Working..."
-    correct_button.config(text="Correcting...", state="disabled")
+    # We will add the button back in a later step.
+    # For now, this function just does the AI logic.
     root.update_idletasks() # Force GUI to update
     
     # --- Run the AI ---
@@ -47,81 +51,141 @@ def on_correct_button_click():
     output_textbox.delete("1.0", tk.END)
     output_textbox.insert("1.0", corrected_text)
     output_textbox.config(state="disabled")
-    
-    # Change button back
-    correct_button.config(text="Correct Text", state="normal")
 
 
 # --- 4. CREATE THE MAIN WINDOW ---
 root = tk.Tk()
-root.title("AI Contextual Corrector v1.0")
-root.geometry("700x550") # Made the window a bit bigger
-root.configure(bg=BG_COLOR) # Set the background color
+root.title("AI Corrector")
+root.geometry("900x500") # Wider to fit horizontal layout
+root.configure(bg=BG_COLOR) # Set the main background color
 
-# --- 5. CREATE THE WIDGETS ---
-# We use "Frames" to organize the layout
+# --- 5. CREATE THE LAYOUT FRAMES ---
 
-# --- Title Frame ---
-title_frame = tk.Frame(root, bg=BG_COLOR)
-title_frame.pack(pady=10)
+# --- Side Menu (Left) ---
+side_menu_frame = tk.Frame(root, width=200, bg=MENU_BG)
+side_menu_frame.pack(side="left", fill="y") # Pack to the left, fill vertically
 
-title_label = tk.Label(title_frame, text="AI Contextual Corrector", font=TITLE_FONT, fg=TEXT_COLOR, bg=BG_COLOR)
-title_label.pack()
+# --- Main Content (Right) ---
+main_content_frame = tk.Frame(root, bg=BG_COLOR)
+main_content_frame.pack(side="right", fill="both", expand=True, padx=20, pady=20)
 
-# --- Input Frame ---
-input_frame = tk.Frame(root, bg=BG_COLOR)
-input_frame.pack(pady=10, padx=20, fill="x")
+# --- 6. POPULATE THE SIDE MENU ---
 
-input_label = tk.Label(input_frame, text="Enter Your Text Below:", font=LABEL_FONT, fg=TEXT_COLOR, bg=BG_COLOR)
-input_label.pack(anchor="w") # "w" = west (left-align)
+# App Title in the menu
+title_label = tk.Label(
+    side_menu_frame, 
+    text="AI Corrector", 
+    font=TITLE_FONT, 
+    fg=FG_COLOR, 
+    bg=MENU_BG
+)
+title_label.pack(pady=20, padx=20)
+
+# Menu buttons (as Labels for a flat look)
+# These are "placeholders" for your future ideas
+corrector_button = tk.Label(
+    side_menu_frame, 
+    text="> Corrector", 
+    font=MENU_FONT, 
+    fg=FG_COLOR, 
+    bg=MENU_BG
+)
+corrector_button.pack(pady=10, padx=20, anchor="w")
+
+settings_button = tk.Label(
+    side_menu_frame, 
+    text="  Settings", 
+    font=MENU_FONT, 
+    fg="#808080",  # Greyed out to show it's "inactive"
+    bg=MENU_BG
+)
+settings_button.pack(pady=10, padx=20, anchor="w")
+
+language_button = tk.Label(
+    side_menu_frame, 
+    text="  Languages (EN-US)", 
+    font=MENU_FONT, 
+    fg="#808080", 
+    bg=MENU_BG
+)
+language_button.pack(pady=10, padx=20, anchor="w")
+
+# --- 7. POPULATE THE MAIN CONTENT ---
+
+# --- Input Frame (Left side of main) ---
+input_frame = tk.Frame(main_content_frame, bg=BG_COLOR)
+input_frame.pack(side="left", fill="both", expand=True, padx=10)
+
+input_label = tk.Label(
+    input_frame, 
+    text="Input Text:", 
+    font=LABEL_FONT, 
+    fg=FG_COLOR, 
+    bg=BG_COLOR
+)
+input_label.pack(anchor="w", pady=(0, 5))
 
 input_textbox = scrolledtext.ScrolledText(
     input_frame, 
-    height=10, 
-    width=80,
+    height=20,
     font=TEXT_FONT,
     bg=ENTRY_BG,          # Dark box background
-    fg=TEXT_COLOR,         # Light text
-    insertbackground=TEXT_COLOR # This is the blinking cursor
+    fg=FG_COLOR,         # White text
+    insertbackground=FG_COLOR, # White blinking cursor
+    relief="flat",         # No 3D border
+    borderwidth=2,         # Thin border
+    highlightbackground=BORDER_COLOR, # Border color
+    highlightcolor=BORDER_COLOR,
+    highlightthickness=1
 )
-input_textbox.pack(pady=5, fill="x", expand=True)
+input_textbox.pack(fill="both", expand=True)
 
-# --- Button Frame ---
-button_frame = tk.Frame(root, bg=BG_COLOR)
-button_frame.pack(pady=10)
+# --- Output Frame (Right side of main) ---
+output_frame = tk.Frame(main_content_frame, bg=BG_COLOR)
+output_frame.pack(side="right", fill="both", expand=True, padx=10)
 
-correct_button = tk.Button(
-    button_frame, 
-    text="Correct Text", 
-    command=on_correct_button_click,
-    font=LABEL_FONT,
-    bg=BTN_COLOR,
-    fg=BTN_TEXT,
-    activebackground=TEXT_COLOR, # Color when clicked
-    activeforeground=BG_COLOR,
-    relief="flat",          # Modern flat button
-    padx=15,
-    pady=5
+output_label = tk.Label(
+    output_frame, 
+    text="Corrected Text:", 
+    font=LABEL_FONT, 
+    fg=FG_COLOR, 
+    bg=BG_COLOR
 )
-correct_button.pack()
-
-# --- Output Frame ---
-output_frame = tk.Frame(root, bg=BG_COLOR)
-output_frame.pack(pady=10, padx=20, fill="x")
-
-output_label = tk.Label(output_frame, text="Corrected Text:", font=LABEL_FONT, fg=TEXT_COLOR, bg=BG_COLOR)
-output_label.pack(anchor="w")
+output_label.pack(anchor="w", pady=(0, 5))
 
 output_textbox = scrolledtext.ScrolledText(
     output_frame, 
-    height=10, 
-    width=80,
+    height=20,
     font=TEXT_FONT,
     bg=ENTRY_BG,
-    fg=TEXT_COLOR
+    fg=FG_COLOR,
+    relief="flat",
+    borderwidth=2,
+    highlightbackground=BORDER_COLOR,
+    highlightcolor=BORDER_COLOR,
+    highlightthickness=1
 )
-output_textbox.pack(pady=5, fill="x", expand=True)
+output_textbox.pack(fill="both", expand=True)
 output_textbox.config(state="disabled") # Read-only
 
-# --- 6. START THE APPLICATION ---
+
+# --- 8. ADD THE "CORRECT" BUTTON ---
+# We'll place it under the Input box
+correct_button = tk.Button(
+    input_frame, # Note: We add it to the input_frame
+    text="Correct Text", 
+    command=on_correct_button_click,
+    font=LABEL_FONT,
+    bg=FG_COLOR, # White button
+    fg=BG_COLOR, # Black text
+    activebackground="#808080",
+    activeforeground=BG_COLOR,
+    relief="flat",
+    padx=15,
+    pady=5
+)
+correct_button.pack(pady=10)
+
+
+# --- 9. START THE APPLICATION ---
 root.mainloop()
