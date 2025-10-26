@@ -130,7 +130,7 @@ AI_Corrector_Project/
 
 ### For End Users
 
-Download and run `AICorrector-Setup.exe` (240 MB)
+Download and run [AICorrector-Setup-v2.3.0.exe](installer/dist/AICorrector-Setup-v2.3.0.exe) (240 MB)
 - Self-contained installer with everything included
 - No Python or dependencies required
 - Themed black/white installer matching the app
