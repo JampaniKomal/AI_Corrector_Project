@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-AI Corrector - Custom Installer
-Modern black and white theme installer with wizard steps
+AI Corrector - Universal Installer/Uninstaller
+Combined installer and uninstaller in one executable
 """
 
 import customtkinter as ctk
@@ -13,21 +13,34 @@ import shutil
 import sys
 from pathlib import Path
 
-class Installer(ctk.CTk):
+class UniversalInstaller(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("AI Corrector Installer")
+        self.title("AI Corrector Setup")
         self.geometry("700x600")
         self.resizable(False, False)
         ctk.set_appearance_mode("dark")
         
         self.install_path = Path(os.path.expanduser("~")) / "AppData" / "Local" / "AICorrector"
-        self.is_installing = False
+        self.is_installed = self.check_installed()
         self.current_step = 0
-        self.steps = ["Welcome", "Installation Options", "Installation", "Finish"]
+        self.mode = "uninstall" if self.is_installed else "install"
+        self.steps = self.get_steps()
         
         self.setup_ui()
         self.show_step(0)
+        
+    def check_installed(self):
+        """Check if AI Corrector is already installed"""
+        exe_path = self.install_path / "AICorrector.exe"
+        return exe_path.exists()
+    
+    def get_steps(self):
+        """Get step names based on mode"""
+        if self.mode == "install":
+            return ["Welcome", "Installation Options", "Installing", "Complete"]
+        else:
+            return ["Confirm Uninstall", "Uninstalling", "Complete"]
         
     def setup_ui(self):
         # Header
@@ -44,7 +57,7 @@ class Installer(ctk.CTk):
         
         self.step_label = ctk.CTkLabel(
             self.header_frame,
-            text="Step 1 of 4 - Welcome",
+            text="Setup",
             font=ctk.CTkFont(size=12),
             text_color="#AAAAAA"
         )
@@ -83,7 +96,7 @@ class Installer(ctk.CTk):
         )
         self.next_btn.grid(row=0, column=2, padx=5)
         
-        self.protocol("WM_DELETE_WINDOW", self.cancel_install)
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
         
     def show_step(self, step_num):
         # Clear content
@@ -91,28 +104,39 @@ class Installer(ctk.CTk):
             widget.destroy()
         
         self.current_step = step_num
-        self.step_label.configure(text=f"Step {step_num + 1} of 4 - {self.steps[step_num]}")
+        self.step_label.configure(text=f"Step {step_num + 1} of {len(self.steps)} - {self.steps[step_num]}")
         
-        if step_num == 0:
-            self.show_welcome()
-        elif step_num == 1:
-            self.show_options()
-        elif step_num == 2:
-            self.show_installing()
-        elif step_num == 3:
-            self.show_finish()
+        if self.mode == "install":
+            if step_num == 0:
+                self.show_install_welcome()
+            elif step_num == 1:
+                self.show_install_options()
+            elif step_num == 2:
+                self.show_installing()
+            elif step_num == 3:
+                self.show_install_complete()
+        else:  # uninstall mode
+            if step_num == 0:
+                self.show_uninstall_confirm()
+            elif step_num == 1:
+                self.show_uninstalling()
+            elif step_num == 2:
+                self.show_uninstall_complete()
         
         # Update button states
         self.back_btn.configure(state="normal" if step_num > 0 else "disabled")
-        if step_num == 3:
+        
+        if step_num == len(self.steps) - 1:
             self.next_btn.configure(text="Finish", command=self.quit)
         else:
             self.next_btn.configure(text="Next", command=self.go_next)
     
-    def show_welcome(self):
+    # ===== INSTALL MODE =====
+    
+    def show_install_welcome(self):
         ctk.CTkLabel(
             self.content_frame,
-            text="Welcome to AI Corrector Installer",
+            text="Welcome to AI Corrector",
             font=ctk.CTkFont(size=20, weight="bold"),
             text_color="#FFFFFF"
         ).pack(pady=20, anchor="w")
@@ -131,7 +155,7 @@ Click 'Next' to continue."""
             justify="left"
         ).pack(pady=20, padx=10, anchor="w")
     
-    def show_options(self):
+    def show_install_options(self):
         ctk.CTkLabel(
             self.content_frame,
             text="Installation Options",
@@ -188,17 +212,119 @@ Click 'Next' to continue."""
             fg_color="#FFFFFF"
         ).pack(anchor="w", pady=5)
     
-    def show_installing(self):
+    def show_install_complete(self):
         ctk.CTkLabel(
             self.content_frame,
-            text="Installing AI Corrector",
+            text="Installation Complete!",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color="#FFFFFF"
+        ).pack(pady=20, anchor="w")
+        
+        complete_text = """AI Corrector has been successfully installed.
+
+You can now launch the application from:
+• Desktop (if shortcut was created)
+• Start Menu
+• Installation folder
+
+Click 'Finish' to close this setup."""
+        
+        ctk.CTkLabel(
+            self.content_frame,
+            text=complete_text,
+            font=ctk.CTkFont(size=13),
+            text_color="#CCCCCC",
+            justify="left"
+        ).pack(pady=20, padx=10, anchor="w")
+        
+        self.back_btn.configure(state="disabled")
+    
+    # ===== UNINSTALL MODE =====
+    
+    def show_uninstall_confirm(self):
+        ctk.CTkLabel(
+            self.content_frame,
+            text="Uninstall AI Corrector",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color="#FFFFFF"
+        ).pack(pady=20, anchor="w")
+        
+        confirm_text = """Are you sure you want to uninstall AI Corrector?
+
+The application will be removed from your computer. Your personal files will not be affected.
+
+Installation folder:"""
+        
+        ctk.CTkLabel(
+            self.content_frame,
+            text=confirm_text,
+            font=ctk.CTkFont(size=13),
+            text_color="#CCCCCC",
+            justify="left"
+        ).pack(pady=(0, 10), padx=10, anchor="w")
+        
+        path_frame = ctk.CTkFrame(self.content_frame, fg_color="#1C1C1C", corner_radius=5)
+        path_frame.pack(fill="x", pady=20)
+        
+        ctk.CTkLabel(
+            path_frame,
+            text=str(self.install_path),
+            font=ctk.CTkFont(size=11),
+            text_color="#AAAAAA"
+        ).pack(padx=15, pady=12, anchor="w")
+        
+        self.remove_shortcuts_var = tk.BooleanVar(value=True)
+        
+        ctk.CTkCheckBox(
+            self.content_frame,
+            text="Remove shortcuts and Start Menu entries",
+            variable=self.remove_shortcuts_var,
+            font=ctk.CTkFont(size=12),
+            text_color="#FFFFFF",
+            border_color="#FFFFFF",
+            checkmark_color="#000000",
+            fg_color="#FFFFFF"
+        ).pack(anchor="w", pady=(20, 0))
+    
+    def show_uninstall_complete(self):
+        ctk.CTkLabel(
+            self.content_frame,
+            text="Uninstallation Complete!",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color="#FFFFFF"
+        ).pack(pady=20, anchor="w")
+        
+        complete_text = """AI Corrector has been successfully uninstalled.
+
+All application files have been removed from your computer.
+
+Click 'Finish' to close this setup."""
+        
+        ctk.CTkLabel(
+            self.content_frame,
+            text=complete_text,
+            font=ctk.CTkFont(size=13),
+            text_color="#CCCCCC",
+            justify="left"
+        ).pack(pady=20, padx=10, anchor="w")
+        
+        self.back_btn.configure(state="disabled")
+    
+    # ===== SHARED PROGRESS SCREEN =====
+    
+    def show_installing(self):
+        action_text = "Installing AI Corrector" if self.mode == "install" else "Uninstalling AI Corrector"
+        
+        ctk.CTkLabel(
+            self.content_frame,
+            text=action_text,
             font=ctk.CTkFont(size=20, weight="bold"),
             text_color="#FFFFFF"
         ).pack(pady=20, anchor="w")
         
         self.status_label = ctk.CTkLabel(
             self.content_frame,
-            text="Preparing installation...",
+            text="Preparing...",
             font=ctk.CTkFont(size=12),
             text_color="#AAAAAA"
         )
@@ -218,105 +344,79 @@ Click 'Next' to continue."""
         self.back_btn.configure(state="disabled")
         self.next_btn.configure(state="disabled")
         
-        # Start installation in thread
-        thread = threading.Thread(target=self.run_install, daemon=True)
+        # Start operation in thread
+        if self.mode == "install":
+            thread = threading.Thread(target=self.run_install, daemon=True)
+        else:
+            thread = threading.Thread(target=self.run_uninstall, daemon=True)
         thread.start()
     
-    def show_finish(self):
-        ctk.CTkLabel(
-            self.content_frame,
-            text="Installation Complete!",
-            font=ctk.CTkFont(size=20, weight="bold"),
-            text_color="#FFFFFF"
-        ).pack(pady=20, anchor="w")
-        
-        finish_text = """AI Corrector has been successfully installed.
-
-You can now launch the application from:
-• Desktop (if shortcut was created)
-• Start Menu
-• Installation folder
-
-Click 'Finish' to close this installer."""
-        
-        ctk.CTkLabel(
-            self.content_frame,
-            text=finish_text,
-            font=ctk.CTkFont(size=13),
-            text_color="#CCCCCC",
-            justify="left"
-        ).pack(pady=20, padx=10, anchor="w")
-        
-        self.back_btn.configure(state="disabled")
-    
-    def go_back(self):
-        if self.current_step > 0:
-            self.show_step(self.current_step - 1)
-    
-    def go_next(self):
-        if self.current_step < len(self.steps) - 1:
-            self.show_step(self.current_step + 1)
-        
     def run_install(self):
         try:
             # Get executable path
             if getattr(sys, 'frozen', False):
                 exe_source = os.path.join(sys._MEIPASS, "AICorrector.exe")
             else:
-                # During development, look for dist folder
                 exe_source = os.path.join(os.path.dirname(__file__), "..", "dist", "AICorrector.exe")
             
             if not os.path.exists(exe_source):
                 self.after(0, self.show_error, "Could not find AICorrector.exe")
                 return
             
-            # Create install directory
             self.after(0, self.update_progress, 10, "Creating installation directory...")
             self.install_path.mkdir(parents=True, exist_ok=True)
             
-            # Copy executable
             self.after(0, self.update_progress, 30, "Installing application...")
             exe_dest = self.install_path / "AICorrector.exe"
             shutil.copy2(exe_source, exe_dest)
             
-            # Copy uninstaller
-            if getattr(sys, 'frozen', False):
-                uninstaller_source = os.path.join(sys._MEIPASS, "AICorrector_Uninstaller.exe")
-            else:
-                uninstaller_source = os.path.join(os.path.dirname(__file__), "uninstaller.py")
-            
-            if os.path.exists(uninstaller_source):
-                uninstaller_dest = self.install_path / "Uninstall.exe"
-                shutil.copy2(uninstaller_source, uninstaller_dest)
-            
-            # Create desktop shortcut if requested
             if self.create_desktop_var.get():
                 self.after(0, self.update_progress, 60, "Creating desktop shortcut...")
                 self.create_desktop_shortcut()
             
-            # Create Start Menu shortcut
             if self.create_startmenu_var.get():
                 self.after(0, self.update_progress, 80, "Creating Start Menu entry...")
                 self.create_startmenu_shortcut()
             
             self.after(0, self.update_progress, 100, "Installation complete!")
-            self.after(500, self.on_install_complete)
+            self.after(500, self.on_operation_complete)
             
         except Exception as e:
             self.after(0, self.show_error, f"Installation failed: {str(e)}")
     
-    def on_install_complete(self):
-        self.show_step(3)
+    def run_uninstall(self):
+        try:
+            if self.remove_shortcuts_var.get():
+                self.after(0, self.update_progress, 20, "Removing shortcuts...")
+                self.remove_desktop_shortcut()
+                self.remove_startmenu_shortcut()
+            
+            self.after(0, self.update_progress, 60, "Removing application files...")
+            if self.install_path.exists():
+                shutil.rmtree(self.install_path)
+            
+            self.after(0, self.update_progress, 100, "Uninstallation complete!")
+            self.after(500, self.on_operation_complete)
+            
+        except Exception as e:
+            self.after(0, self.show_error, f"Uninstallation failed: {str(e)}")
+    
+    def on_operation_complete(self):
+        final_step = len(self.steps) - 1
+        self.show_step(final_step)
         self.back_btn.configure(state="disabled")
-        
+    
     def update_progress(self, value, status):
         self.progress_var.set(value / 100)
         self.status_label.configure(text=status)
-        
+    
     def show_error(self, message):
-        messagebox.showerror("Installation Error", message)
-        self.show_step(1)
-        
+        messagebox.showerror("Error", message)
+        if self.mode == "install":
+            self.show_step(1)
+        else:
+            self.show_step(0)
+    
     def create_desktop_shortcut(self):
         try:
             import win32com.client
@@ -329,7 +429,7 @@ Click 'Finish' to close this installer."""
             shortcut.save()
         except:
             pass
-            
+    
     def create_startmenu_shortcut(self):
         try:
             import win32com.client
@@ -342,14 +442,40 @@ Click 'Finish' to close this installer."""
             shortcut.save()
         except:
             pass
-            
-    def cancel_install(self):
-        if self.current_step == 2:
-            messagebox.showwarning("Cannot Cancel", "Installation is in progress.")
+    
+    def remove_desktop_shortcut(self):
+        try:
+            desktop = Path.home() / "Desktop"
+            shortcut_path = desktop / "AI Corrector.lnk"
+            if shortcut_path.exists():
+                shortcut_path.unlink()
+        except:
+            pass
+    
+    def remove_startmenu_shortcut(self):
+        try:
+            start_menu = Path.home() / "AppData" / "Roaming" / "Microsoft" / "Windows" / "Start Menu" / "Programs"
+            shortcut_path = start_menu / "AI Corrector.lnk"
+            if shortcut_path.exists():
+                shortcut_path.unlink()
+        except:
+            pass
+    
+    def go_back(self):
+        if self.current_step > 0:
+            self.show_step(self.current_step - 1)
+    
+    def go_next(self):
+        if self.current_step < len(self.steps) - 1:
+            self.show_step(self.current_step + 1)
+    
+    def on_close(self):
+        if self.current_step == (2 if self.mode == "install" else 1):
+            messagebox.showwarning("Cannot Close", "Operation is in progress.")
             return
         self.quit()
 
 
 if __name__ == "__main__":
-    app = Installer()
+    app = UniversalInstaller()
     app.mainloop()

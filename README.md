@@ -51,13 +51,18 @@ AI_Corrector_Project/
 │       └── grammar_correction.py # Core correction logic
 │
 ├── scripts/                      # Utility scripts
-│   └── download_model.py         # Model download utility
+│   ├── download_model.py         # Model download utility
+│   ├── setup.py                  # Universal installer/uninstaller
+│   ├── installer.py              # (Deprecated - use setup.py)
+│   └── uninstaller.py            # (Deprecated - use setup.py)
 │
 ├── config/                       # Configuration files
-│   ├── app.spec                  # PyInstaller configuration
-│   └── installer_script.iss      # Inno Setup installer script
+│   ├── AICorrector.spec          # PyInstaller spec file
+│   └── installer_script.iss      # Old Inno Setup script (deprecated)
 │
-├── docs/                         # Documentation
+├── assets/                       # Application assets
+│   ├── app_logo.ico              # Application icon
+│   └── app_logo.png              # Application logo
 │
 ├── models/                       # Downloaded AI models (gitignored)
 │
@@ -139,21 +144,41 @@ python main.py
 
 ## Building Executable
 
-### Using PyInstaller
+### Step 1: Build Main Application
 
 ```bash
-pyinstaller -F --noconsole --name AICorrector --paths src --collect-all torch --collect-all transformers --collect-all customtkinter --collect-all spellchecker --collect-all PIL --add-data "..\\assets\\app_logo.ico;assets" --icon "..\\assets\\app_logo.ico" --specpath config main.py
+pyinstaller -F --noconsole --name AICorrector --paths src --collect-all torch --collect-all transformers --collect-all customtkinter --collect-all spellchecker --collect-all PIL --add-data "assets\\app_logo.ico;assets" --icon assets\\app_logo.ico main.py
 ```
 
 The executable will be created in the `dist/` folder.
 
-### Creating Windows Installer
+### Step 2: Build Universal Installer/Uninstaller
 
-1. Install [Inno Setup](https://jrsoftware.org/isinfo.php)
-2. Open `config/installer_script.iss` in Inno Setup
-3. Click **Build** → **Compile**
+```bash
+pyinstaller -F --noconsole --name AICorrector-Setup --collect-all customtkinter --icon assets\\app_logo.ico scripts/setup.py
+```
 
-The installer will be created in the project root directory.
+### Step 3: Bundle for Distribution
+
+After building both executables, you'll have:
+- `dist/AICorrector.exe` - Main application
+- `dist/AICorrector-Setup.exe` - Combined installer & uninstaller
+
+**Distribution Package:**
+- Users run `AICorrector-Setup.exe`
+- On first run: **Install mode** - Guides through installation
+- On subsequent runs: **Uninstall mode** - Offers to uninstall
+
+### Universal Setup Features
+
+- **Smart Detection** - Automatically detects if app is installed
+- **Install Mode** - Welcome → Options → Installing → Complete
+- **Uninstall Mode** - Confirm → Uninstalling → Complete
+- **Modern Black & White Theme** - Matches the application UI
+- **Desktop Shortcut** - Optional during installation
+- **Start Menu Entry** - Automatic integration
+- **Progress Tracking** - Real-time installation/uninstallation progress
+- **Clean Removal** - Safely removes all files on uninstall
 
 ## Team
 
@@ -169,10 +194,9 @@ The installer will be created in the project root directory.
 - **Python 3.8+**
 - **Transformers** - Hugging Face Transformers library
 - **PyTorch** - Deep learning framework
-- **CustomTkinter** - Modern GUI framework
+- **CustomTkinter** - Modern GUI framework (app & installers)
 - **PySpellChecker** - Spell checking library
 - **PyInstaller** - Executable builder
-- **Inno Setup** - Windows installer creator
 
 ## Acknowledgments
 
