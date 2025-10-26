@@ -145,22 +145,46 @@ python main.py
 
 ## Building Executable & Installer
 
-### Step 1: Build Main Application with PyInstaller
+### Option 1: Custom Python Installer (Recommended)
 
-The application is already built using the PyInstaller spec file:
+**Our custom installer perfectly matches the application's black/white theme and provides the best user experience.**
 
+**Step 1: Build Main Application**
 ```bash
 pyinstaller config\AICorrector.spec
 ```
 
-Or manually:
+The executable will be created in `dist/AICorrector.exe` (~204 MB).
+
+**Step 2: Install Installer Dependencies**
 ```bash
-pyinstaller -F --noconsole --name AICorrector --paths src --collect-all torch --collect-all transformers --collect-all customtkinter --collect-all spellchecker --collect-all PIL --add-data "assets\\app_logo.ico;assets" --icon assets\\app_logo.ico main.py
+cd installer
+pip install -r requirements.txt
 ```
 
-The executable will be created in the `dist/` folder (~204 MB).
+**Step 3: Run the Installer**
+```bash
+python installer\installer_ui.py
+```
 
-### Step 2: Create Professional Installer with Inno Setup
+**Custom Installer Features:**
+- **Theme Matched** - Uses same black/white theme as main app
+- **Professional UI** - Built with CustomTkinter, matches app design
+- **Smart Features** - Installation location selection, progress tracking
+- **Shortcuts** - Desktop and Start Menu shortcuts with icons
+- **Uninstaller** - Themed uninstaller matching the installer design
+- **Registry Integration** - Add/Remove Programs support
+- **Launch Option** - Launch app immediately after installation
+
+**To Build Installer as Standalone Executable:**
+```bash
+cd installer
+pyinstaller --onefile --windowed --name "AICorrector-Setup" --icon ..\assets\app_logo.ico installer_ui.py
+```
+
+### Option 2: Inno Setup Installer (Alternative)
+
+**For those preferring traditional installer tools:**
 
 **Install Inno Setup:**
 Download from [jrsoftware.org/isinfo.php](https://jrsoftware.org/isinfo.php) and install it.
@@ -172,23 +196,27 @@ Download from [jrsoftware.org/isinfo.php](https://jrsoftware.org/isinfo.php) and
 
 The installer will be created as `dist\AICorrector-Setup-v2.3.0.exe` (~203 MB)
 
-**Installer Features:**
-- Professional Windows wizard interface
-- Automatic shortcuts (Start Menu + Desktop)
+**Inno Setup Features:**
+- Standard Windows wizard interface
+- Minimal black/white theme (limited customization)
+- Automatic shortcuts
 - Built-in uninstaller
-- Add/Remove Programs integration
-- Custom installation directory
-- Models folder auto-creation
-- Post-install launch option
 
 ### Distribution
 
-Users download and run `AICorrector-Setup-v2.3.0.exe` - a professional installer with:
-- Black & White theme
-- Bundled uninstaller
+**Using Custom Installer (Recommended):**
+Distribute either:
+- `AICorrector-Setup.exe` (standalone installer) - Users get themed installation experience
+- `installer/` folder with Python - Requires Python on user's machine
+
+**Using Inno Setup:**
+Distribute `AICorrector-Setup-v2.3.0.exe` - Standard professional installer
+
+Both installers provide:
 - Start Menu shortcuts
-- Desktop shortcut
+- Desktop shortcut  
 - Add/Remove Programs support
+- Automatic uninstaller creation
 
 ## Team
 

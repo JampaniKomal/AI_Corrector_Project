@@ -1,0 +1,6 @@
+# Installer Requirements
+# These packages are needed to build and run the custom installer/uninstaller
+
+customtkinter>=5.0.0
+pywin32>=300  # For creating Windows shortcuts
+Pillow>=9.0.0  # For icon handling
