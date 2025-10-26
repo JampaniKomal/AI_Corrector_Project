@@ -44,9 +44,11 @@ venv.bak/
 .env.*
 secrets.json
 
+
 # Models / large ML artifacts
-# Ignore downloaded model directories and common weight file formats
-model/
+# Keep top-level `model/` folder tracked, but ignore a nested `model` folder inside it
+# (ignores `model/model/` and its contents)
+/model/model/
 *.pt
 *.pth
 *.bin
