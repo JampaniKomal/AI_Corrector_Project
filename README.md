@@ -50,22 +50,26 @@ AI_Corrector_Project/
 │       ├── __init__.py
 │       └── grammar_correction.py # Core correction logic
 │
+├── installer/                    # Custom installer & uninstaller
+│   ├── installer_ui.py           # Professional themed installer
+│   ├── uninstaller_ui.py         # Matching themed uninstaller
+│   ├── requirements.txt          # Installer dependencies
+│   └── GUIDE.md                  # Installation guide
+│
 ├── scripts/                      # Utility scripts
 │   ├── download_model.py         # Model download utility
-│   ├── setup.py                  # Universal installer/uninstaller
-│   ├── installer.py              # (Deprecated - use setup.py)
-│   └── uninstaller.py            # (Deprecated - use setup.py)
+│   └── setup.py                  # Build automation script
 │
 ├── config/                       # Configuration files
 │   ├── AICorrector.spec          # PyInstaller spec file
-│   ├── installer.nsi             # NSIS installer script
-│   └── installer_script.iss      # Old Inno Setup script (deprecated)
+│   └── AICorrector_Installer.iss # Inno Setup script (alternative)
 │
 ├── assets/                       # Application assets
 │   ├── app_logo.ico              # Application icon
 │   └── app_logo.png              # Application logo
 │
 ├── models/                       # Downloaded AI models (gitignored)
+├── dist/                         # Build output (gitignored)
 │
 ├── main.py                       # Application entry point
 ├── requirements.txt              # Python dependencies
@@ -145,78 +149,177 @@ python main.py
 
 ## Building Executable & Installer
 
-### Option 1: Custom Python Installer (Recommended)
+### Complete Build Process
 
-**Our custom installer perfectly matches the application's black/white theme and provides the best user experience.**
+**Step 1: Build the Main Application**
 
-**Step 1: Build Main Application**
-```bash
+Build the executable using PyInstaller:
+
+```powershell
 pyinstaller config\AICorrector.spec
 ```
 
-The executable will be created in `dist/AICorrector.exe` (~204 MB).
+This creates `dist/AICorrector.exe` (~204 MB) - the standalone application.
 
-**Step 2: Install Installer Dependencies**
-```bash
+---
+
+### Step 2: Create Custom Installer (Recommended)
+
+**Our custom installer perfectly matches the application's black/white minimalist theme.**
+
+**Install installer dependencies:**
+```powershell
 cd installer
 pip install -r requirements.txt
+cd ..
 ```
 
-**Step 3: Run the Installer**
-```bash
+**Run the installer (for testing):**
+```powershell
 python installer\installer_ui.py
 ```
 
-**Custom Installer Features:**
-- **Theme Matched** - Uses same black/white theme as main app
-- **Professional UI** - Built with CustomTkinter, matches app design
-- **Smart Features** - Installation location selection, progress tracking
-- **Shortcuts** - Desktop and Start Menu shortcuts with icons
-- **Uninstaller** - Themed uninstaller matching the installer design
-- **Registry Integration** - Add/Remove Programs support
-- **Launch Option** - Launch app immediately after installation
-
-**To Build Installer as Standalone Executable:**
-```bash
+**Build standalone installer executable:**
+```powershell
 cd installer
 pyinstaller --onefile --windowed --name "AICorrector-Setup" --icon ..\assets\app_logo.ico installer_ui.py
+cd ..
 ```
 
-### Option 2: Inno Setup Installer (Alternative)
+This creates `installer\dist\AICorrector-Setup.exe` - a professional themed installer.
 
-**For those preferring traditional installer tools:**
+**Custom Installer Features:**
+- **Perfect Theme Match** - Identical black/white design as main app
+- **Minimal Design** - No decorative symbols, clean typography
+- **Smart Installation** - User-selectable location (default: AppData)
+- **Progress Tracking** - Real-time installation progress
+- **Shortcuts** - Desktop and Start Menu shortcuts with custom icon
+- **Matching Uninstaller** - Same themed uninstaller included
+- **Registry Integration** - Appears in Add/Remove Programs
+- **Launch Option** - Launch app immediately after installation
+- **No Admin Required** - Installs to user directory
 
-**Install Inno Setup:**
-Download from [jrsoftware.org/isinfo.php](https://jrsoftware.org/isinfo.php) and install it.
+**Window Specifications:**
+- Size: 450x450 (compact 1:1 ratio)
+- Theme: Black background, white text/buttons
+- Font sizes: 18-22px titles, 12px body text
+- Consistent with main application design
 
-**Build the installer:**
+---
+
+### Alternative: Inno Setup Installer
+
+**For traditional Windows installer experience:**
+
+1. Download Inno Setup from [jrsoftware.org/isinfo.php](https://jrsoftware.org/isinfo.php)
+2. Build the installer:
+
 ```powershell
 & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" config\AICorrector_Installer.iss
 ```
 
-The installer will be created as `dist\AICorrector-Setup-v2.3.0.exe` (~203 MB)
+Creates `dist\AICorrector-Setup-v2.3.0.exe` (~203 MB)
 
 **Inno Setup Features:**
-- Standard Windows wizard interface
-- Minimal black/white theme (limited customization)
-- Automatic shortcuts
+- Standard Windows wizard
+- Minimal theme (limited customization)
+- Professional appearance
 - Built-in uninstaller
+
+---
 
 ### Distribution
 
-**Using Custom Installer (Recommended):**
-Distribute either:
-- `AICorrector-Setup.exe` (standalone installer) - Users get themed installation experience
-- `installer/` folder with Python - Requires Python on user's machine
+**Recommended Distribution Method:**
 
-**Using Inno Setup:**
-Distribute `AICorrector-Setup-v2.3.0.exe` - Standard professional installer
+Distribute `AICorrector-Setup.exe` (the custom installer):
+- Users get beautiful themed installation experience
+- Matches application design perfectly
+- Professional and user-friendly
+- Single executable, no dependencies
 
-Both installers provide:
-- Start Menu shortcuts
-- Desktop shortcut  
-- Add/Remove Programs support
-- Automatic uninstaller creation
+**What the installer does:**
+1. Welcome screen with app description
+2. User selects installation location
+3. User chooses shortcuts (desktop/start menu)
+4. Installs application files
+5. Creates shortcuts with custom icon
+6. Registers in Add/Remove Programs
+7. Option to launch app immediately
+
+**What users get:**
+- `C:\Users\[username]\AppData\Local\AI Corrector\` - Application files
+- Desktop shortcut (optional)
+- Start Menu folder with app and uninstaller shortcuts
+- Add/Remove Programs entry for easy uninstallation
+
+---
+
+## Packaging for Distribution
+
+### Create Final Release Package
+
+**Step 1: Build all components**
+```powershell
+# Build main application
+pyinstaller config\AICorrector.spec
+
+# Build custom installer
+cd installer
+pip install -r requirements.txt
+pyinstaller --onefile --windowed --name "AICorrector-Setup-v2.3.0" --icon ..\assets\app_logo.ico installer_ui.py
+cd ..
+```
+
+**Step 2: Prepare distribution folder**
+```powershell
+# Create release folder
+New-Item -ItemType Directory -Force -Path "release"
+
+# Copy installer
+Copy-Item "installer\dist\AICorrector-Setup-v2.3.0.exe" -Destination "release\"
+
+# Optional: Copy README for context
+Copy-Item "README.md" -Destination "release\README.txt"
+```
+
+**Step 3: Test the installer**
+```powershell
+# Run installer to verify it works
+.\release\AICorrector-Setup-v2.3.0.exe
+```
+
+---
+
+### Release Checklist
+
+Before distributing:
+
+- [ ] Main app executable built (`dist/AICorrector.exe`)
+- [ ] Installer executable built (`installer/dist/AICorrector-Setup-v2.3.0.exe`)
+- [ ] Test installer on clean machine
+- [ ] Verify shortcuts work correctly
+- [ ] Test uninstaller removes all files
+- [ ] Check Add/Remove Programs entry
+- [ ] Verify app launches after installation
+- [ ] Test app functionality (grammar correction)
+- [ ] Ensure all assets (icon, logo) display correctly
+
+---
+
+### Distribution Files
+
+**For End Users:**
+- `AICorrector-Setup-v2.3.0.exe` - Single file, ~5-10 MB
+- User runs installer, gets complete themed installation experience
+- No Python or dependencies required
+
+**For Developers:**
+- Full repository with source code
+- Build instructions in README
+- Custom installer source code in `installer/`
+
+---
 
 ## Team
 
