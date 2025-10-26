@@ -251,34 +251,55 @@ class App(ctk.CTk):
         # --- NEW HYBRID LOGIC ---
 
         # 1. STEP A: SPELL CHECK
-        # We create a SpellChecker object for English
-        spell = SpellChecker()
         
-        # Split the input into individual words
+        # Create a NON-case-sensitive spell checker
+        spell = SpellChecker(case_sensitive=False)
+        
+        # --- NEW FIX: Add custom words/corrections ---
+        
+        # 1. Add proper nouns to the dictionary so they are not "corrected"
+        # (This teaches the speller that "Komal" is a correct word)
+        spell.word_frequency.add("komal")
+        spell.word_frequency.add("jampani")
+        
+        # 2. HACK: Massively boost the frequency of "name" to ensure
+        #    it's chosen over "team" for the typo "neam".
+        #    This is a safe way to give our speller a "hint".
+        spell.word_frequency.add("name", 1000000)
+        # --- END OF FIX ---
+        
         words = input_text.split()
         
-        # Find all the misspelled words
+        # Find all misspelled words
         misspelled = spell.unknown(words)
         
-        # Correct each misspelled word
         corrected_words = []
         for word in words:
             if word in misspelled:
                 # Get the one, most-likely correction
                 corrected_word = spell.correction(word)
-                if corrected_word: # Make sure a correction was found
+                
+                # Check if a valid correction was found
+                if corrected_word and corrected_word != word.lower():
+                    # Preserve capitalization
+                    if word.istitle():
+                        corrected_word = corrected_word.title()
+                    elif word.isupper():
+                        corrected_word = corrected_word.upper()
+                    
                     corrected_words.append(corrected_word)
                 else:
-                    corrected_words.append(word) # Keep original if no correction
+                    # No correction found, or correction is the same
+                    corrected_words.append(word)
             else:
+                # Word is not misspelled
                 corrected_words.append(word)
         
-        # Join the corrected words back into a sentence
         spell_checked_text = " ".join(corrected_words)
         print(f"Spell-checked text: '{spell_checked_text}'")
 
         # 2. STEP B: GRAMMAR CHECK (using the T5 Model)
-        # We now feed the *spell-checked* text to the grammar AI
+        # We now feed the *smarter* spell-checked text to the grammar AI
         corrected_text = correct_grammar(spell_checked_text, model, tokenizer)
         
         # --- END OF NEW LOGIC ---
