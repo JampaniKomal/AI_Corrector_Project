@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import tkinter as tk
 from correct import initialize_model, correct_grammar
+from spellchecker import SpellChecker
 
 # --- 1. SETUP THE AI (Run once at the start) ---
 print("App started. Loading AI model...")
@@ -243,18 +244,51 @@ class App(ctk.CTk):
         input_text = self.corrector_input_textbox.get("1.0", "end-1c")
         if len(input_text.strip()) < 1: return
             
-        print(f"Correcting text: '{input_text.strip()}'")
+        print(f"Original text: '{input_text.strip()}'")
         self.corrector_button_middle.configure(text="...", state="disabled")
         self.update_idletasks() # Force GUI to update
+
+        # --- NEW HYBRID LOGIC ---
+
+        # 1. STEP A: SPELL CHECK
+        # We create a SpellChecker object for English
+        spell = SpellChecker()
         
-        corrected_text = correct_grammar(input_text, model, tokenizer)
+        # Split the input into individual words
+        words = input_text.split()
+        
+        # Find all the misspelled words
+        misspelled = spell.unknown(words)
+        
+        # Correct each misspelled word
+        corrected_words = []
+        for word in words:
+            if word in misspelled:
+                # Get the one, most-likely correction
+                corrected_word = spell.correction(word)
+                if corrected_word: # Make sure a correction was found
+                    corrected_words.append(corrected_word)
+                else:
+                    corrected_words.append(word) # Keep original if no correction
+            else:
+                corrected_words.append(word)
+        
+        # Join the corrected words back into a sentence
+        spell_checked_text = " ".join(corrected_words)
+        print(f"Spell-checked text: '{spell_checked_text}'")
+
+        # 2. STEP B: GRAMMAR CHECK (using the T5 Model)
+        # We now feed the *spell-checked* text to the grammar AI
+        corrected_text = correct_grammar(spell_checked_text, model, tokenizer)
+        
+        # --- END OF NEW LOGIC ---
         
         self.corrector_output_textbox.configure(state="normal")
         self.corrector_output_textbox.delete("1.0", tk.END)
         self.corrector_output_textbox.insert("1.0", corrected_text)
         self.corrector_output_textbox.configure(state="disabled")
         self.corrector_button_middle.configure(text=">>", state="normal")
-
+        
 # --- 5. START THE APPLICATION ---
 if __name__ == "__main__":
     app = App()
