@@ -61,8 +61,16 @@ class UninstallerApp(ctk.CTk):
         
         # Window setup
         self.title(f"Uninstall {self.APP_NAME}")
-        self.geometry("500x500")  # 1:1 ratio
+        self.geometry("480x480")  # Smaller 1:1 ratio
         self.resizable(False, False)
+        
+        # Set custom icon
+        try:
+            icon_path = os.path.join(self.install_dir, "assets", "app_logo.ico")
+            if os.path.exists(icon_path):
+                self.iconbitmap(icon_path)
+        except Exception as e:
+            print(f"Could not load icon: {e}")
         
         # Set theme
         ctk.set_appearance_mode("system")
@@ -185,7 +193,7 @@ class UninstallerApp(ctk.CTk):
         # Progress bar
         self.progress_bar = ctk.CTkProgressBar(
             page,
-            width=400,
+            width=380,
             height=20,
             corner_radius=10,
             progress_color=self.current_theme["PROGRESS_COLOR"],

@@ -59,8 +59,16 @@ class InstallerApp(ctk.CTk):
         
         # Window setup
         self.title(f"{self.APP_NAME} {self.APP_VERSION} - Setup")
-        self.geometry("600x600")  # 1:1 ratio
+        self.geometry("550x550")  # Smaller 1:1 ratio
         self.resizable(False, False)
+        
+        # Set custom icon
+        try:
+            icon_path = os.path.join(self.source_folder, "assets", "app_logo.ico")
+            if os.path.exists(icon_path):
+                self.iconbitmap(icon_path)
+        except Exception as e:
+            print(f"Could not load icon: {e}")
         
         # Set theme
         ctk.set_appearance_mode("system")
@@ -207,14 +215,14 @@ class InstallerApp(ctk.CTk):
         
         self.location_entry = ctk.CTkEntry(
             loc_frame,
-            width=350,
+            width=320,
             height=35,
             fg_color=self.current_theme["ENTRY_COLOR"],
             text_color=self.current_theme["TEXT_COLOR"],
             border_color=self.current_theme["BORDER_COLOR"],
             border_width=1,
             corner_radius=8,
-            font=ctk.CTkFont(size=11)
+            font=ctk.CTkFont(size=10)
         )
         self.location_entry.pack(side="left", padx=(0, 10))
         self.location_entry.insert(0, self.install_location)
@@ -275,6 +283,9 @@ class InstallerApp(ctk.CTk):
             text_color=self.current_theme["TEXT_COLOR"],
             fg_color=self.current_theme["BTN_COLOR"],
             hover_color=self.current_theme["BTN_HOVER_COLOR"],
+            border_color=self.current_theme["BORDER_COLOR"],
+            border_width=2,
+            checkmark_color=self.current_theme["BTN_TEXT_COLOR"],
             font=ctk.CTkFont(size=13)
         )
         desktop_cb.pack(pady=10, anchor="w")
@@ -287,6 +298,9 @@ class InstallerApp(ctk.CTk):
             text_color=self.current_theme["TEXT_COLOR"],
             fg_color=self.current_theme["BTN_COLOR"],
             hover_color=self.current_theme["BTN_HOVER_COLOR"],
+            border_color=self.current_theme["BORDER_COLOR"],
+            border_width=2,
+            checkmark_color=self.current_theme["BTN_TEXT_COLOR"],
             font=ctk.CTkFont(size=13)
         )
         startmenu_cb.pack(pady=10, anchor="w")
@@ -308,7 +322,7 @@ class InstallerApp(ctk.CTk):
         # Progress bar
         self.progress_bar = ctk.CTkProgressBar(
             page,
-            width=500,
+            width=450,
             height=20,
             corner_radius=10,
             progress_color=self.current_theme["PROGRESS_COLOR"],
@@ -374,6 +388,9 @@ class InstallerApp(ctk.CTk):
             text_color=self.current_theme["TEXT_COLOR"],
             fg_color=self.current_theme["BTN_COLOR"],
             hover_color=self.current_theme["BTN_HOVER_COLOR"],
+            border_color=self.current_theme["BORDER_COLOR"],
+            border_width=2,
+            checkmark_color=self.current_theme["BTN_TEXT_COLOR"],
             font=ctk.CTkFont(size=13, weight="bold")
         )
         launch_cb.pack(pady=30)
@@ -403,13 +420,17 @@ class InstallerApp(ctk.CTk):
         
         # Next/Install/Finish button
         if self.current_page == len(self.pages) - 1:
-            self.next_btn.configure(text="Finish")
+            # Complete page - show Finish button
+            self.next_btn.configure(text="Finish", state="normal")
             self.cancel_btn.configure(state="disabled")
+            self.back_btn.configure(state="disabled")
         elif self.current_page == len(self.pages) - 2:
+            # Installing page - show Install button
             self.next_btn.configure(text="Install", state="disabled" if self.is_installing else "normal")
             self.back_btn.configure(state="disabled" if self.is_installing else "normal")
             self.cancel_btn.configure(state="disabled" if self.is_installing else "normal")
         else:
+            # Other pages - show Next button
             self.next_btn.configure(text="Next >", state="normal")
             self.cancel_btn.configure(state="normal")
     
@@ -421,18 +442,21 @@ class InstallerApp(ctk.CTk):
     def go_next(self):
         """Navigate to next page or execute action"""
         if self.current_page == len(self.pages) - 1:
-            # Finish button clicked
+            # Finish button clicked on complete page
+            print("Finish button clicked - closing installer")
             self.finish_installation()
         elif self.current_page == len(self.pages) - 2:
-            # Install button clicked
+            # Install button clicked on installing page
+            print("Install button clicked - starting installation")
             self.start_installation()
         else:
-            # Next button clicked
+            # Next button clicked - go to next page
             if self.current_page == 1:
                 # Validate installation path
                 self.install_location = self.location_entry.get()
                 if not self.validate_install_path():
                     return
+            print(f"Going to page {self.current_page + 1}")
             self.show_page(self.current_page + 1)
     
     def browse_location(self):
@@ -674,20 +698,30 @@ class InstallerApp(ctk.CTk):
     
     def finish_installation(self):
         """Finish installation and launch app if requested"""
+        print("Finishing installation...")
         if self.launch_after_install.get():
+            print("Launch checkbox is checked - attempting to launch app")
             try:
                 exe_path = os.path.join(self.install_location, "AICorrector.exe")
                 if os.path.exists(exe_path):
+                    print(f"Launching exe: {exe_path}")
                     os.startfile(exe_path)
                 else:
                     # Launch Python script
+                    print("Exe not found, launching Python script")
                     import subprocess
                     script_path = os.path.join(self.install_location, "main.py")
-                    subprocess.Popen(['python', script_path], cwd=self.install_location)
+                    if os.path.exists(script_path):
+                        subprocess.Popen(['python', script_path], cwd=self.install_location)
+                    else:
+                        print(f"Script not found at: {script_path}")
             except Exception as e:
                 print(f"Error launching app: {e}")
+        else:
+            print("Launch checkbox not checked - skipping app launch")
         
-        self.quit()
+        print("Closing installer...")
+        self.destroy()  # Use destroy instead of quit for cleaner exit
     
     def show_error_dialog(self, title, message):
         """Show themed error dialog"""
