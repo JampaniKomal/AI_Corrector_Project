@@ -1,6 +1,6 @@
 import customtkinter as ctk
 import tkinter as tk
-import tkinter.messagebox as messagebox
+import tkinter.messagebox as messagebox # Keep for fallback if needed
 import threading
 import os
 from correct import (SUPPORTED_MODELS, check_if_model_downloaded,
@@ -19,10 +19,14 @@ DARK_THEME = {
     "BTN_TEXT_COLOR": "#000000",
     "BTN_HOVER_COLOR": "#E0E0E0",
     "ICON_HOVER_COLOR": "#333333",
-    "DOWNLOAD_BTN_COLOR": "#FFFFFF",
-    "DOWNLOAD_BTN_TEXT": "#000000",
-    "DOWNLOAD_BTN_HOVER": "#CCCCCC",
-    "DISABLED_COLOR": "#555555"
+    "DOWNLOAD_BTN_COLOR": "#FFFFFF", # White button
+    "DOWNLOAD_BTN_TEXT": "#000000", # Black text
+    "DOWNLOAD_BTN_HOVER": "#CCCCCC", # Lighter grey hover
+    "DISABLED_COLOR": "#555555",
+    "BORDER_COLOR": "#FFFFFF", # White border for text boxes
+    "PROGRESS_COLOR": "#FFFFFF", # White progress bar
+    "POPUP_BG": "#1C1C1C",
+    "POPUP_TEXT": "#FFFFFF"
 }
 
 LIGHT_THEME = {
@@ -34,10 +38,14 @@ LIGHT_THEME = {
     "BTN_TEXT_COLOR": "#FFFFFF", # White button text
     "BTN_HOVER_COLOR": "#333333",
     "ICON_HOVER_COLOR": "#CCCCCC",
-    "DOWNLOAD_BTN_COLOR": "#000000",
-    "DOWNLOAD_BTN_TEXT": "#FFFFFF",
-    "DOWNLOAD_BTN_HOVER": "#555555",
-    "DISABLED_COLOR": "#AAAAAA"
+    "DOWNLOAD_BTN_COLOR": "#000000", # Black button
+    "DOWNLOAD_BTN_TEXT": "#FFFFFF", # White text
+    "DOWNLOAD_BTN_HOVER": "#555555", # Darker grey hover
+    "DISABLED_COLOR": "#AAAAAA",
+    "BORDER_COLOR": "#000000", # Black border for text boxes
+    "PROGRESS_COLOR": "#000000", # Black progress bar
+    "POPUP_BG": "#F5F5F5",
+    "POPUP_TEXT": "#000000"
 }
 
 # --- MAIN APPLICATION CLASS ---
@@ -47,6 +55,7 @@ class App(ctk.CTk):
 
         self.title("AI Corrector v2.2")
         self.geometry("1100x600")
+        # Don't configure fg_color here, apply_theme handles it
         ctk.set_appearance_mode("dark") # Start in dark mode
 
         # --- AI Model State ---
@@ -85,24 +94,19 @@ class App(ctk.CTk):
         # Update Sidebars
         self.sidebar_expanded.configure(fg_color=theme["MENU_COLOR"])
         self.sidebar_collapsed.configure(fg_color=theme["MENU_COLOR"])
-        # Update sidebar buttons (text color, hover color etc.)
-        for btn in self.sidebar_expanded.winfo_children() + self.sidebar_collapsed.winfo_children():
-             if isinstance(btn, ctk.CTkLabel):
-                 btn.configure(text_color=theme["TEXT_COLOR"], fg_color=theme["MENU_COLOR"])
-             elif isinstance(btn, ctk.CTkButton):
-                 # Handle active/inactive state coloring later in show_page
-                 is_settings_btn = btn in [self.settings_btn_exp, self.settings_btn_col]
-                 is_toggle_btn = btn in [self.menu_toggle_btn_exp, self.menu_toggle_btn_col]
-                 
-                 if not is_settings_btn and not is_toggle_btn: # Nav buttons
-                     # Default to inactive style
-                     btn.configure(text_color=theme["TEXT_COLOR"], fg_color="transparent", hover_color=theme["ICON_HOVER_COLOR"])
-                 elif is_settings_btn:
-                     btn.configure(text_color=theme["TEXT_COLOR"], fg_color="transparent", hover_color=theme["ICON_HOVER_COLOR"])
-                 else: # Toggle button
-                      btn.configure(text_color=theme["TEXT_COLOR"], hover_color=theme["ICON_HOVER_COLOR"])
-        # Update OptionMenu explicitly
-        self.lang_menu.configure(fg_color=theme["ENTRY_COLOR"], text_color=theme["TEXT_COLOR"], button_color=theme["ENTRY_COLOR"], dropdown_fg_color=theme["ENTRY_COLOR"], dropdown_text_color=theme["TEXT_COLOR"])
+        
+        # Explicitly update children of sidebars
+        for widget in self.sidebar_expanded.winfo_children():
+            if isinstance(widget, ctk.CTkLabel):
+                widget.configure(text_color=theme["TEXT_COLOR"])
+            elif isinstance(widget, ctk.CTkButton):
+                widget.configure(text_color=theme["TEXT_COLOR"], hover_color=theme["ICON_HOVER_COLOR"])
+            elif isinstance(widget, ctk.CTkOptionMenu):
+                 widget.configure(fg_color=theme["ENTRY_COLOR"], text_color=theme["TEXT_COLOR"], button_color=theme["ENTRY_COLOR"], dropdown_fg_color=theme["ENTRY_COLOR"], dropdown_text_color=theme["TEXT_COLOR"])
+
+        for widget in self.sidebar_collapsed.winfo_children():
+            if isinstance(widget, ctk.CTkButton):
+                 widget.configure(text_color=theme["TEXT_COLOR"], hover_color=theme["ICON_HOVER_COLOR"])
 
 
         # Update Main Pages
@@ -111,13 +115,20 @@ class App(ctk.CTk):
         self.settings_page_frame.configure(fg_color=theme["BG_COLOR"])
 
         # Update Corrector Page Widgets
-        self.lang_indicator_label.configure(text_color=theme.get("DISABLED_COLOR", "#AAAAAA")) # Use theme disabled color
-        self.corrector_page_frame.children['!ctklabel'].configure(text_color=theme["TEXT_COLOR"]) # Input label
-        self.corrector_page_frame.children['!ctklabel2'].configure(text_color=theme["TEXT_COLOR"]) # Output label
-        self.corrector_input_textbox.configure(fg_color=theme["ENTRY_COLOR"], text_color=theme["TEXT_COLOR"], border_color=theme["TEXT_COLOR"])
-        self.corrector_output_textbox.configure(fg_color=theme["ENTRY_COLOR"], text_color=theme["TEXT_COLOR"], border_color=theme["TEXT_COLOR"])
+        self.lang_indicator_label.configure(text_color=theme.get("DISABLED_COLOR", "#AAAAAA"))
+        # Use direct access if widget names are known, or iterate like below
+        for child in self.corrector_page_frame.winfo_children():
+            if isinstance(child, ctk.CTkLabel):
+                 child.configure(text_color=theme["TEXT_COLOR"])
+            elif isinstance(child, ctk.CTkTextbox):
+                 child.configure(fg_color=theme["ENTRY_COLOR"], text_color=theme["TEXT_COLOR"], border_color=theme["BORDER_COLOR"])
+            elif isinstance(child, ctk.CTkButton): # Middle button
+                 child.configure(fg_color=theme["BTN_COLOR"], text_color=theme["BTN_TEXT_COLOR"], hover_color=theme["BTN_HOVER_COLOR"])
+            elif isinstance(child, ctk.CTkFrame): # Middle button frame
+                 child.configure(fg_color=theme["BG_COLOR"])
+        # Re-apply middle button colors as it's inside a frame
         self.corrector_button_middle.configure(fg_color=theme["BTN_COLOR"], text_color=theme["BTN_TEXT_COLOR"], hover_color=theme["BTN_HOVER_COLOR"])
-        self.corrector_page_frame.children['!ctkframe'].configure(fg_color=theme["BG_COLOR"]) # Middle button frame bg
+
 
         # Update About Page Widgets
         for child in self.about_page_frame.winfo_children():
@@ -125,57 +136,57 @@ class App(ctk.CTk):
                 child.configure(text_color=theme["TEXT_COLOR"])
 
         # Update Settings Page Widgets
-        self.settings_page_frame.children['!ctklabel'].configure(text_color=theme["TEXT_COLOR"]) # Settings Title
-        self.appearance_frame.configure(fg_color=theme["ENTRY_COLOR"])
-        self.appearance_frame.children['!ctklabel'].configure(text_color=theme["TEXT_COLOR"]) # Appearance Title
-        for radio in self.appearance_frame.winfo_children():
-             if isinstance(radio, ctk.CTkRadioButton):
-                 radio.configure(text_color=theme["TEXT_COLOR"])
-        
-        self.language_frame.configure(fg_color=theme["ENTRY_COLOR"])
-        self.language_frame.children['!ctklabel'].configure(text_color=theme["TEXT_COLOR"]) # Language Title
-        for lang_code in SUPPORTED_MODELS:
-            # Update radio button text
-            radio = self.language_frame.children[f'!ctkframe{list(SUPPORTED_MODELS.keys()).index(lang_code)+1}'].children['!ctkradiobutton']
-            radio.configure(text_color=theme["TEXT_COLOR"])
-            # Update status label color (logic handled in update_language_statuses)
-            # Update download button style
-            btn = self.language_buttons.get(lang_code)
-            if btn:
-                btn.configure(
-                    fg_color=theme["DOWNLOAD_BTN_COLOR"],
-                    text_color=theme["DOWNLOAD_BTN_TEXT"],
-                    hover_color=theme["DOWNLOAD_BTN_HOVER"]
-                )
-            # Update "Coming Soon" label
-            coming_soon_label_key = f'!ctklabel{list(SUPPORTED_MODELS.keys()).index(lang_code)+1}'
-            if coming_soon_label_key in self.language_frame.children[f'!ctkframe{list(SUPPORTED_MODELS.keys()).index(lang_code)+1}'].children:
-                self.language_frame.children[f'!ctkframe{list(SUPPORTED_MODELS.keys()).index(lang_code)+1}'].children[coming_soon_label_key].configure(text_color=theme.get("DISABLED_COLOR", "#AAAAAA"))
+        for child in self.settings_page_frame.winfo_children():
+             if isinstance(child, ctk.CTkLabel): # Page Title
+                 child.configure(text_color=theme["TEXT_COLOR"])
+             elif isinstance(child, ctk.CTkFrame): # Appearance & Language Frames
+                 child.configure(fg_color=theme["ENTRY_COLOR"])
+                 # Update children within these frames
+                 for sub_child in child.winfo_children():
+                     if isinstance(sub_child, ctk.CTkLabel): # Section Titles
+                         sub_child.configure(text_color=theme["TEXT_COLOR"])
+                     elif isinstance(sub_child, ctk.CTkRadioButton):
+                         sub_child.configure(text_color=theme["TEXT_COLOR"])
+                     elif isinstance(sub_child, ctk.CTkFrame): # Model frames
+                         sub_child.configure(fg_color="transparent") # Keep model frame transparent
+                         for model_widget in sub_child.winfo_children():
+                             if isinstance(model_widget, ctk.CTkRadioButton):
+                                  model_widget.configure(text_color=theme["TEXT_COLOR"])
+                             elif isinstance(model_widget, ctk.CTkLabel) and model_widget.cget("text") != "(Coming Soon)": # Status label
+                                  # Status color is set dynamically later
+                                  pass
+                             elif isinstance(model_widget, ctk.CTkLabel) and model_widget.cget("text") == "(Coming Soon)":
+                                  model_widget.configure(text_color=theme["DISABLED_COLOR"])
+                             elif isinstance(model_widget, ctk.CTkButton): # Download button
+                                  model_widget.configure(fg_color=theme["DOWNLOAD_BTN_COLOR"], text_color=theme["DOWNLOAD_BTN_TEXT"], hover_color=theme["DOWNLOAD_BTN_HOVER"])
+                             elif isinstance(model_widget, ctk.CTkProgressBar):
+                                  model_widget.configure(progress_color=theme["PROGRESS_COLOR"])
 
 
-        # Re-apply active page button styles
+        # Re-apply active page button styles and language statuses
         self.highlight_active_page_button()
+        self.update_language_statuses() # Update status colors for the new theme
 
     def highlight_active_page_button(self):
          """ Sets the correct highlight color for the active page button """
          theme = self.current_theme
-         # Reset all first
-         self.corrector_btn_exp.configure(fg_color="transparent", text_color=theme["TEXT_COLOR"])
-         self.about_btn_exp.configure(fg_color="transparent", text_color=theme["TEXT_COLOR"])
-         self.settings_btn_exp.configure(fg_color="transparent", text_color=theme["TEXT_COLOR"])
+         # Reset all nav buttons first
+         self.corrector_btn_exp.configure(fg_color="transparent", text_color=theme["TEXT_COLOR"], hover_color=theme["ICON_HOVER_COLOR"])
+         self.about_btn_exp.configure(fg_color="transparent", text_color=theme["TEXT_COLOR"], hover_color=theme["ICON_HOVER_COLOR"])
+         self.settings_btn_exp.configure(fg_color="transparent", text_color=theme["TEXT_COLOR"], hover_color=theme["ICON_HOVER_COLOR"])
 
+         # Highlight the active one
          if self.corrector_page_frame.winfo_viewable():
-             self.corrector_btn_exp.configure(fg_color=theme["BTN_COLOR"], text_color=theme["BTN_TEXT_COLOR"])
+             self.corrector_btn_exp.configure(fg_color=theme["BTN_COLOR"], text_color=theme["BTN_TEXT_COLOR"], hover_color=theme["BTN_HOVER_COLOR"]) # Use button hover color when active
          elif self.about_page_frame.winfo_viewable():
-             self.about_btn_exp.configure(fg_color=theme["BTN_COLOR"], text_color=theme["BTN_TEXT_COLOR"])
+             self.about_btn_exp.configure(fg_color=theme["BTN_COLOR"], text_color=theme["BTN_TEXT_COLOR"], hover_color=theme["BTN_HOVER_COLOR"])
          elif self.settings_page_frame.winfo_viewable():
-             self.settings_btn_exp.configure(fg_color=theme["BTN_COLOR"], text_color=theme["BTN_TEXT_COLOR"])
-
+             self.settings_btn_exp.configure(fg_color=theme["BTN_COLOR"], text_color=theme["BTN_TEXT_COLOR"], hover_color=theme["BTN_HOVER_COLOR"])
 
     # --- GUI Creation Methods ---
     def create_sidebars(self):
         # --- EXPANDED Sidebar ---
-        self.sidebar_expanded = ctk.CTkFrame(self, width=250, corner_radius=0) # Color set by apply_theme
+        self.sidebar_expanded = ctk.CTkFrame(self, width=250, corner_radius=0)
         self.sidebar_expanded.grid(row=0, column=0, sticky="nsw")
         self.sidebar_expanded.grid_rowconfigure(6, weight=1) # Spacer row
 
@@ -195,7 +206,7 @@ class App(ctk.CTk):
         self.settings_btn_exp.grid(row=7, column=0, pady=20, padx=20, sticky="s")
 
         # --- COLLAPSED Sidebar ---
-        self.sidebar_collapsed = ctk.CTkFrame(self, width=70, corner_radius=0) # Color set by apply_theme
+        self.sidebar_collapsed = ctk.CTkFrame(self, width=70, corner_radius=0)
         self.sidebar_collapsed.grid(row=0, column=0, sticky="nsw")
         self.sidebar_collapsed.grid_rowconfigure(1, weight=1) # Spacer
         self.menu_toggle_btn_col = ctk.CTkButton(self.sidebar_collapsed, text="☰", font=ctk.CTkFont(size=20), width=40, fg_color="transparent", command=self.toggle_sidebar, anchor="center")
@@ -206,30 +217,30 @@ class App(ctk.CTk):
 
     def create_pages(self):
         # --- Page 1: Corrector ---
-        self.corrector_page_frame = ctk.CTkFrame(self, corner_radius=0) # Color set by apply_theme
+        self.corrector_page_frame = ctk.CTkFrame(self, corner_radius=0)
         self.corrector_page_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
         self.corrector_page_frame.grid_columnconfigure((0, 2), weight=1)
         self.corrector_page_frame.grid_columnconfigure(1, weight=0)
         self.corrector_page_frame.grid_rowconfigure(2, weight=1) # Textboxes row
 
-        self.lang_indicator_label = ctk.CTkLabel(self.corrector_page_frame, text="Model: [None Loaded]", font=ctk.CTkFont(size=12)) # Color set by apply_theme
+        self.lang_indicator_label = ctk.CTkLabel(self.corrector_page_frame, text="Model: [None Loaded]", font=ctk.CTkFont(size=12))
         self.lang_indicator_label.grid(row=0, column=0, sticky="w", pady=(0, 5))
 
         ctk.CTkLabel(self.corrector_page_frame, text="Input Text:", font=ctk.CTkFont(size=14)).grid(row=1, column=0, sticky="w", pady=(0, 5))
-        self.corrector_input_textbox = ctk.CTkTextbox(self.corrector_page_frame, corner_radius=10, font=ctk.CTkFont(size=13), border_width=1) # Colors set by apply_theme
+        self.corrector_input_textbox = ctk.CTkTextbox(self.corrector_page_frame, corner_radius=10, font=ctk.CTkFont(size=13), border_width=1)
         self.corrector_input_textbox.grid(row=2, column=0, sticky="nsew", padx=(0, 10))
 
-        middle_button_frame = ctk.CTkFrame(self.corrector_page_frame) # Color set by apply_theme
+        middle_button_frame = ctk.CTkFrame(self.corrector_page_frame)
         middle_button_frame.grid(row=2, column=1, sticky="ns", padx=5)
-        self.corrector_button_middle = ctk.CTkButton(middle_button_frame, text=">>", width=50, font=ctk.CTkFont(size=16, weight="bold"), corner_radius=8, command=self.on_correct_click, state="disabled") # Colors set by apply_theme
+        self.corrector_button_middle = ctk.CTkButton(middle_button_frame, text=">>", width=50, font=ctk.CTkFont(size=16, weight="bold"), corner_radius=8, command=self.on_correct_click, state="disabled")
         self.corrector_button_middle.pack(expand=True)
 
         ctk.CTkLabel(self.corrector_page_frame, text="Corrected Text:", font=ctk.CTkFont(size=14)).grid(row=1, column=2, sticky="w", pady=(0, 5))
-        self.corrector_output_textbox = ctk.CTkTextbox(self.corrector_page_frame, corner_radius=10, font=ctk.CTkFont(size=13), state="disabled", border_width=1) # Colors set by apply_theme
+        self.corrector_output_textbox = ctk.CTkTextbox(self.corrector_page_frame, corner_radius=10, font=ctk.CTkFont(size=13), state="disabled", border_width=1)
         self.corrector_output_textbox.grid(row=2, column=2, sticky="nsew", padx=(10, 0))
 
         # --- Page 2: About Us ---
-        self.about_page_frame = ctk.CTkFrame(self, corner_radius=0) # Color set by apply_theme
+        self.about_page_frame = ctk.CTkFrame(self, corner_radius=0)
         self.about_page_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
         ctk.CTkLabel(self.about_page_frame, text="About This Project", font=ctk.CTkFont(size=24, weight="bold")).pack(pady=20, anchor="w")
         about_text = ("Project: AI Contextual Corrector\n"
@@ -243,12 +254,12 @@ class App(ctk.CTk):
         self.about_page_frame.grid_forget()
 
         # --- Page 3: Settings ---
-        self.settings_page_frame = ctk.CTkFrame(self, corner_radius=0) # Color set by apply_theme
+        self.settings_page_frame = ctk.CTkFrame(self, corner_radius=0)
         self.settings_page_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
         ctk.CTkLabel(self.settings_page_frame, text="Settings", font=ctk.CTkFont(size=24, weight="bold")).pack(pady=20, anchor="w")
 
         # --- Appearance Settings ---
-        self.appearance_frame = ctk.CTkFrame(self.settings_page_frame, corner_radius=10) # Color set by apply_theme
+        self.appearance_frame = ctk.CTkFrame(self.settings_page_frame, corner_radius=10)
         self.appearance_frame.pack(fill="x", padx=20, pady=10, anchor="w")
         ctk.CTkLabel(self.appearance_frame, text="Appearance Mode", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(10, 5), padx=20, anchor="w")
         radio_light = ctk.CTkRadioButton(self.appearance_frame, text="Light Mode", variable=self.theme_radio_var, value="light", command=self.change_theme)
@@ -259,7 +270,7 @@ class App(ctk.CTk):
         radio_system.pack(pady=(5, 10), padx=20, anchor="w")
 
         # --- Language Model Settings ---
-        self.language_frame = ctk.CTkFrame(self.settings_page_frame, corner_radius=10) # Color set by apply_theme
+        self.language_frame = ctk.CTkFrame(self.settings_page_frame, corner_radius=10)
         self.language_frame.pack(fill="x", padx=20, pady=10, anchor="w")
         ctk.CTkLabel(self.language_frame, text="Language Models", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(10, 15), padx=20, anchor="w")
 
@@ -268,24 +279,33 @@ class App(ctk.CTk):
             model_frame.pack(fill="x", padx=20, pady=5)
             model_frame.grid_columnconfigure(1, weight=1)
 
+            # Assign specific names for easier access in apply_theme
+            model_frame.widgetName = f"model_frame_{lang_code}" 
+
             lang_radio = ctk.CTkRadioButton(model_frame, text=details["name"], width=200, value=lang_code, command=lambda lc=lang_code: self.load_selected_model(lc))
             lang_radio.grid(row=0, column=0, sticky="w")
+            lang_radio.widgetName = "lang_radio" # Give it a name
 
-            self.language_status_labels[lang_code] = ctk.CTkLabel(model_frame, text="Status: Unknown", font=ctk.CTkFont(size=12)) # Color set by apply_theme
+            self.language_status_labels[lang_code] = ctk.CTkLabel(model_frame, text="Status: Unknown", font=ctk.CTkFont(size=12))
             self.language_status_labels[lang_code].grid(row=0, column=1, sticky="w", padx=10)
+            self.language_status_labels[lang_code].widgetName = "status_label"
 
             self.language_progress_bars[lang_code] = ctk.CTkProgressBar(model_frame, width=150)
             self.language_progress_bars[lang_code].set(0)
+            self.language_progress_bars[lang_code].widgetName = "progress_bar"
 
             if details["hf_id"]:
                 self.language_buttons[lang_code] = ctk.CTkButton(
-                    model_frame, text="↓", width=30, height=30, # Smaller button
-                    font=ctk.CTkFont(size=16), corner_radius=5, # Slightly rounded
+                    model_frame, text="↓", width=30, height=30,
+                    font=ctk.CTkFont(size=16), corner_radius=5,
                     command=lambda lc=lang_code: self.start_download_thread(lc)
-                ) # Colors set by apply_theme
+                )
                 self.language_buttons[lang_code].grid(row=0, column=3, sticky="e")
+                self.language_buttons[lang_code].widgetName = "download_button"
             else:
-                 ctk.CTkLabel(model_frame, text="(Coming Soon)", font=ctk.CTkFont(size=12, slant="italic"), text_color=self.current_theme.get("DISABLED_COLOR", "#AAAAAA")).grid(row=0, column=3, sticky="e", padx=10)
+                 coming_soon = ctk.CTkLabel(model_frame, text="(Coming Soon)", font=ctk.CTkFont(size=12, slant="italic"))
+                 coming_soon.grid(row=0, column=3, sticky="e", padx=10)
+                 coming_soon.widgetName = "coming_soon_label"
 
         self.settings_page_frame.grid_forget()
 
@@ -304,7 +324,7 @@ class App(ctk.CTk):
         self.about_page_frame.grid_forget()
         self.settings_page_frame.grid_forget()
         
-        # Show the selected page
+        # Show selected page
         if page_name == "corrector":
             self.corrector_page_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
         elif page_name == "about":
@@ -312,22 +332,19 @@ class App(ctk.CTk):
         elif page_name == "settings":
             self.settings_page_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
             
-        # Update button styles AFTER showing page
         self.highlight_active_page_button()
-
 
     def change_theme(self):
         mode = self.theme_radio_var.get()
-        ctk.set_appearance_mode(mode)
+        ctk.set_appearance_mode(mode) # Tell customtkinter the mode
         print(f"Appearance mode changed to: {mode}")
         if mode == "light":
             self.apply_theme(LIGHT_THEME)
-        else: # Dark or System (which defaults to dark here)
+        else: # Dark or System (assuming system defaults dark for now)
             self.apply_theme(DARK_THEME)
 
-    # --- Language Model Handling ---
+    # --- Language Model Handling (mostly unchanged, just uses themed popup) ---
     def update_language_statuses(self):
-        """ Checks download status for all models and updates the GUI. """
         theme = self.current_theme
         for lang_code, details in SUPPORTED_MODELS.items():
             status_label = self.language_status_labels.get(lang_code)
@@ -335,25 +352,23 @@ class App(ctk.CTk):
             
             if not status_label: continue
 
-            status_color = theme.get("DISABLED_COLOR", "#AAAAAA") # Default grey
+            status_color = theme.get("DISABLED_COLOR", "#AAAAAA")
             status_text = "Status: Unknown"
 
             if details["hf_id"] is None:
                  status_text = "Status: Not Available"
                  if download_button: download_button.grid_forget()
-
             elif check_if_model_downloaded(lang_code):
                 status_text = "Status: Downloaded"
                 status_color = "lightgreen"
-                if download_button: download_button.grid_forget() # Hide download button
+                if download_button: download_button.grid_forget()
             else:
                 status_text = "Status: Not Downloaded"
-                if download_button: download_button.grid(row=0, column=3, sticky="e") # Show download button
+                if download_button: download_button.grid(row=0, column=3, sticky="e")
 
             status_label.configure(text=status_text, text_color=status_color)
 
     def start_download_thread(self, lang_code):
-        """ Starts downloading a model in a background thread. """
         if self.is_loading:
             self.show_themed_messagebox("Busy", "Another operation is already in progress.", msg_type="warning")
             return
@@ -364,9 +379,9 @@ class App(ctk.CTk):
 
         if btn: btn.configure(state="disabled", text="...")
         if prog_bar:
-            prog_bar.grid(row=0, column=2, sticky="e", padx=5) # Show progress bar
+            prog_bar.grid(row=0, column=2, sticky="e", padx=5)
             prog_bar.set(0)
-            prog_bar.configure(progress_color=self.current_theme["TEXT_COLOR"]) # Set bar color based on theme
+            prog_bar.configure(progress_color=self.current_theme["PROGRESS_COLOR"])
         if status_label: status_label.configure(text="Status: Downloading...", text_color="yellow")
 
         self.is_loading = True
@@ -374,7 +389,6 @@ class App(ctk.CTk):
         download_thread.start()
 
     def download_model_thread(self, lang_code):
-        """ --- RUNS IN BACKGROUND THREAD --- """
         print(f"[Thread] Starting download for {lang_code}...")
         def progress_update(message, percentage):
             self.after(0, self.update_download_progress, lang_code, message, percentage)
@@ -382,22 +396,20 @@ class App(ctk.CTk):
         self.after(0, self.on_download_complete, lang_code, success)
 
     def update_download_progress(self, lang_code, message, percentage):
-        """ --- RUNS IN MAIN GUI THREAD --- Updates progress bar and status. """
         prog_bar = self.language_progress_bars.get(lang_code)
         status_label = self.language_status_labels.get(lang_code)
         if status_label: status_label.configure(text=f"Status: {message}")
         if prog_bar: prog_bar.set(percentage / 100)
 
     def on_download_complete(self, lang_code, success):
-        """ --- RUNS IN MAIN GUI THREAD --- Called when download finishes. """
         self.is_loading = False
         prog_bar = self.language_progress_bars.get(lang_code)
         btn = self.language_buttons.get(lang_code)
 
-        if prog_bar: prog_bar.grid_forget() # Hide progress bar
-        if btn: btn.configure(state="normal", text="↓") # Re-enable if failed
+        if prog_bar: prog_bar.grid_forget()
+        if btn: btn.configure(state="normal", text="↓")
         
-        self.update_language_statuses() # Refresh status labels/buttons
+        self.update_language_statuses()
 
         if success:
             self.show_themed_messagebox("Download Complete", f"Model for {SUPPORTED_MODELS[lang_code]['name']} downloaded successfully.", msg_type="info")
@@ -405,7 +417,6 @@ class App(ctk.CTk):
             self.show_themed_messagebox("Download Failed", f"Could not download model for {SUPPORTED_MODELS[lang_code]['name']}.\nCheck console for errors.", msg_type="error")
 
     def load_selected_model(self, lang_code, initial_load=False):
-        """ Attempts to load the model for the selected language. """
         if self.is_loading:
              if not initial_load: self.show_themed_messagebox("Busy", "Please wait for the current operation to finish.", msg_type="warning")
              return
@@ -413,15 +424,15 @@ class App(ctk.CTk):
         if not check_if_model_downloaded(lang_code):
             if not initial_load: self.show_themed_messagebox("Error", f"Model for {SUPPORTED_MODELS[lang_code]['name']} is not downloaded.\nPlease download it from Settings first.", msg_type="error")
             self.update_corrector_status(f"Model: [{SUPPORTED_MODELS[lang_code]['name']} - Not Downloaded]", error=True)
-            self.model = None # Unload any previous model
+            self.model = None
             self.tokenizer = None
             self.current_lang_code = None
             return
 
         if self.current_lang_code == lang_code and self.model is not None:
             print(f"Model for {lang_code} already loaded.")
-            self.update_corrector_status(f"Model: [{SUPPORTED_MODELS[lang_code]['name']}] - Ready") # Ensure status is correct
-            return # Avoid reloading the same model
+            self.update_corrector_status(f"Model: [{SUPPORTED_MODELS[lang_code]['name']}] - Ready")
+            return
 
         self.is_loading = True
         self.update_corrector_status(f"Loading Model: [{SUPPORTED_MODELS[lang_code]['name']}]...", loading=True)
@@ -430,13 +441,11 @@ class App(ctk.CTk):
         load_thread.start()
 
     def load_model_thread(self, lang_code):
-        """ --- RUNS IN BACKGROUND --- """
         print(f"[Thread] Starting model load for {lang_code}...")
         new_model, new_tokenizer = load_model_from_disk(lang_code)
         self.after(0, self.on_load_model_complete, lang_code, new_model, new_tokenizer)
 
     def on_load_model_complete(self, lang_code, loaded_model, loaded_tokenizer):
-         """ --- RUNS IN MAIN GUI --- """
          self.is_loading = False
          if loaded_model and loaded_tokenizer:
              self.model = loaded_model
@@ -445,27 +454,25 @@ class App(ctk.CTk):
              self.update_corrector_status(f"Model: [{SUPPORTED_MODELS[lang_code]['name']}] - Ready")
              # Only show pop-up on explicit user selection, not initial load
              if hasattr(self, '_initial_load_done') and self._initial_load_done:
-                 self.show_themed_messagebox("Model Loaded", f"{SUPPORTED_MODELS[lang_code]['name']} model loaded successfully.", msg_type="info")
+                  self.show_themed_messagebox("Model Loaded", f"{SUPPORTED_MODELS[lang_code]['name']} model loaded successfully.", msg_type="info")
          else:
              self.update_corrector_status(f"Error loading model: [{SUPPORTED_MODELS[lang_code]['name']}]", error=True)
              self.model = None
              self.tokenizer = None
              self.current_lang_code = None
              if hasattr(self, '_initial_load_done') and self._initial_load_done:
-                 self.show_themed_messagebox("Load Failed", f"Could not load model for {SUPPORTED_MODELS[lang_code]['name']}.\nFiles might be corrupt.", msg_type="error")
-         self._initial_load_done = True # Mark initial load as done
+                  self.show_themed_messagebox("Load Failed", f"Could not load model for {SUPPORTED_MODELS[lang_code]['name']}.\nFiles might be corrupt.", msg_type="error")
+         self._initial_load_done = True # Mark initial load flag
 
 
     def update_corrector_status(self, message, loading=False, error=False):
-        """ Updates the language indicator label and button states. """
         theme = self.current_theme
         self.lang_indicator_label.configure(text=message)
-        status_color = theme["TEXT_COLOR"] # Default
-        if loading: status_color = "#AAAAAA"
+        status_color = theme["TEXT_COLOR"]
+        if loading: status_color = theme.get("DISABLED_COLOR", "#AAAAAA")
         if error: status_color = "red"
-        if not self.model: status_color = theme.get("DISABLED_COLOR", "#AAAAAA") # If no model loaded
-        if self.model and not loading and not error: status_color = "lightgreen" # Ready state
-
+        if not self.model: status_color = theme.get("DISABLED_COLOR", "#AAAAAA")
+        if self.model and not loading and not error: status_color = "lightgreen"
         self.lang_indicator_label.configure(text_color=status_color)
 
         if loading or error or not self.model:
@@ -476,7 +483,6 @@ class App(ctk.CTk):
             self.corrector_input_textbox.configure(state="normal")
 
     def on_correct_click(self):
-        """ Handles the correction button click, including warnings. """
         if not self.model or not self.tokenizer or not self.current_lang_code:
             self.show_themed_messagebox("No Model Loaded", "Please select and ensure a language model is downloaded and loaded via the Settings page before correcting text.", msg_type="warning")
             return
@@ -492,7 +498,7 @@ class App(ctk.CTk):
         spell = SpellChecker(case_sensitive=False)
         spell.word_frequency.add("komal")
         spell.word_frequency.add("jampani")
-        spell.word_frequency.add("name", 1000000)
+        spell.word_frequency.add("name", 1000000) # Boost frequency
         words = input_text.split()
         misspelled = spell.unknown(words)
         corrected_words = []
@@ -500,11 +506,12 @@ class App(ctk.CTk):
             if word in misspelled:
                 corrected_word = spell.correction(word)
                 if corrected_word and corrected_word != word.lower():
+                    # Preserve capitalization
                     if word.istitle(): corrected_word = corrected_word.title()
                     elif word.isupper(): corrected_word = corrected_word.upper()
                     corrected_words.append(corrected_word)
-                else: corrected_words.append(word)
-            else: corrected_words.append(word)
+                else: corrected_words.append(word) # Keep original if no correction
+            else: corrected_words.append(word) # Word is correct
         spell_checked_text = " ".join(corrected_words)
         print(f"Spell-checked text: '{spell_checked_text}'")
 
@@ -520,25 +527,43 @@ class App(ctk.CTk):
     # --- Utility: Themed Pop-up ---
     def show_themed_messagebox(self, title, message, msg_type="info"):
         """ Creates a custom Toplevel window for themed messages. """
-        popup = ctk.CTkToplevel(self)
-        popup.geometry("400x150")
-        popup.title(title)
-        popup.configure(fg_color=self.current_theme["ENTRY_COLOR"])
-        popup.grab_set() # Make modal
-        popup.transient(self)
+        try:
+            popup = ctk.CTkToplevel(self)
+            popup.geometry("400x150+"+str(self.winfo_rootx()+50)+"+"+str(self.winfo_rooty()+50)) # Position near main window
+            popup.title(title)
+            popup.configure(fg_color=self.current_theme["POPUP_BG"])
+            popup.grab_set() # Make modal
+            popup.transient(self)
 
-        icon_text = "ⓘ" if msg_type == "info" else "⚠" if msg_type == "warning" else "❌"
-        icon_color = "lightgreen" if msg_type == "info" else "yellow" if msg_type == "warning" else "red"
+            icon_text = "ⓘ" if msg_type == "info" else "⚠" if msg_type == "warning" else "❌"
+            icon_color = "lightgreen" if msg_type == "info" else "yellow" if msg_type == "warning" else "red"
 
-        icon_label = ctk.CTkLabel(popup, text=icon_text, font=ctk.CTkFont(size=24), text_color=icon_color)
-        icon_label.pack(side="left", padx=15)
+            frame = ctk.CTkFrame(popup, fg_color="transparent")
+            frame.pack(pady=20, padx=20, fill="both", expand=True)
+            frame.grid_columnconfigure(1, weight=1)
 
-        message_label = ctk.CTkLabel(popup, text=message, font=ctk.CTkFont(size=13), justify="left", text_color=self.current_theme["TEXT_COLOR"], wraplength=280)
-        message_label.pack(side="left", padx=10, pady=20, fill="x", expand=True)
+            icon_label = ctk.CTkLabel(frame, text=icon_text, font=ctk.CTkFont(size=30), text_color=icon_color)
+            icon_label.grid(row=0, column=0, rowspan=2, padx=(0, 15), sticky="ns")
 
-        ok_button = ctk.CTkButton(popup, text="OK", width=80, command=popup.destroy,
-                                  fg_color=self.current_theme["BTN_COLOR"], text_color=self.current_theme["BTN_TEXT_COLOR"], hover_color=self.current_theme["BTN_HOVER_COLOR"])
-        ok_button.pack(side="bottom", pady=10)
+            message_label = ctk.CTkLabel(frame, text=message, font=ctk.CTkFont(size=13), justify="left", text_color=self.current_theme["POPUP_TEXT"], wraplength=280)
+            message_label.grid(row=0, column=1, pady=(0, 10), sticky="nw")
+
+            ok_button = ctk.CTkButton(frame, text="OK", width=80, command=popup.destroy,
+                                      fg_color=self.current_theme["BTN_COLOR"], text_color=self.current_theme["BTN_TEXT_COLOR"], hover_color=self.current_theme["BTN_HOVER_COLOR"])
+            ok_button.grid(row=1, column=1, sticky="se")
+
+            popup.after(100, popup.lift) # Bring popup to front
+
+        except Exception as e:
+            print(f"Error showing themed messagebox: {e}")
+            # Fallback to standard tkinter messagebox
+            if msg_type == "info":
+                messagebox.showinfo(title, message)
+            elif msg_type == "warning":
+                messagebox.showwarning(title, message)
+            else: # error
+                messagebox.showerror(title, message)
+
 
 # --- START THE APPLICATION ---
 if __name__ == "__main__":
