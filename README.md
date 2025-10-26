@@ -37,7 +37,7 @@ What it Lacked: Integrating a full-scale AI model proved immensely complex and p
 
 Repository: https://github.com/JAMPANIKOMAL/Type-Correcter-Ai
 
-Architecture: A pivot to a Flask Web Application to isolate and validate the performance of the core Sequence-to-Sequence Neural Network.
+Architecture: A pivot to a Flask Web Application to isolate and validate the performance of the core Sequence-to-Sequence (Seq2Seq) model.
 
 What it Lacked: While proving the AI model was effective, the web interface limited the solution to one tab/browser. It failed to address our expanded vision: universal correction in every selected app—not just Chrome.
 
@@ -71,7 +71,7 @@ AI Corrector is an intelligent text correction application developed as part of 
 
 ## AI Methodology Focus
 
-The core of the AI Corrector project is powered by the T5 (Text-to-Text Transfer Transformer) model, an advanced neural network architecture covered under the Neural Networks and NLP and Text Analytics units of our Artificial Intelligence syllabus (G5AD24ARI).
+The core of the AI Corrector project is built upon the T5 (Text-to-Text Transfer Transformer) model, an advanced neural network architecture explicitly linked to the Neural Networks and NLP and Text Analytics units of our Artificial Intelligence syllabus (G5AD24ARI).
 
 - Technique: We utilize a fine-tuned T5 model specifically trained for Grammatical Error Correction (GEC). The GEC task is treated as a sequence-to-sequence translation problem, where the input sequence (erroneous text) is directly translated into the output sequence (corrected text).
 - Model Advantage: The T5 architecture's attention mechanisms allow it to understand the deep context of a sentence, enabling it to correct complex grammatical errors and syntactical mistakes that simple dictionary or rule-based methods (like those explored in Prototype 1) could not handle.
@@ -79,7 +79,7 @@ The core of the AI Corrector project is powered by the T5 (Text-to-Text Transfer
 
 ## Visual Demonstration
 
-To showcase the application's modern UI and core functionality, screenshots of the CustomTkinter interface are included below. These visuals are key components for the project's formal Report and Presentation.
+To showcase the application's modern UI and core functionality, screenshots of the CustomTkinter interface are included below. These visuals directly support the Implementation Details and Results & Discussion sections required for the Project Report and PowerPoint Presentation.
 
 (Screenshots will be added here demonstrating the application interface, correction workflow, and settings management)
 
@@ -127,7 +127,7 @@ AI_Corrector_Project/
 
 ### For End Users
 
-Download and run `AICorrector-Setup.exe`
+Download and run `AICorrector-Setup.exe` (240 MB)
 - Self-contained installer with everything included
 - No Python or dependencies required
 - Themed black/white installer matching the app
@@ -143,17 +143,17 @@ cd AI_Corrector_Project
 python -m venv venv
 .\venv\Scripts\activate
 pip install -r requirements.txt
-```
 
-Run the application:
+# First-time setup: Download the required T5 model weights
+python scripts\download_model.py
 
-```powershell
+# Run the application
 python main.py
 ```
 
-First-time setup:
+After launching:
 1. Navigate to Settings and select your preferred language model
-2. Click download if the model is not already installed
+2. Ensure the model is downloaded (use download button if needed)
 3. Navigate to Corrector page and start correcting text
 
 ## Building & Distribution
