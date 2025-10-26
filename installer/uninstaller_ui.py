@@ -143,27 +143,16 @@ class UninstallerApp(ctk.CTk):
         """Page 0: Confirm uninstallation"""
         page = ctk.CTkFrame(self.main_frame, corner_radius=0, fg_color=self.current_theme["BG_COLOR"])
         
-        # Warning icon - using simple text instead of emoji
-        icon_label = ctk.CTkLabel(
-            page,
-            text="!",
-            font=ctk.CTkFont(size=56, weight="bold"),
-            text_color="orange",
-            width=80,
-            height=80,
-            corner_radius=40,
-            fg_color="#FF8C00"
-        )
-        icon_label.pack(pady=(60, 20))
+        # No icon - clean minimal design like your app
         
         # Title
         title = ctk.CTkLabel(
             page,
             text=f"Uninstall {self.APP_NAME}?",
-            font=ctk.CTkFont(size=18, weight="bold"),
+            font=ctk.CTkFont(size=22, weight="bold"),
             text_color=self.current_theme["TEXT_COLOR"]
         )
-        title.pack(pady=(0, 15))
+        title.pack(pady=(80, 30))
         
         # Description
         desc_text = (
@@ -180,7 +169,7 @@ class UninstallerApp(ctk.CTk):
             text_color=self.current_theme["TEXT_COLOR"],
             justify="center"
         )
-        desc.pack(pady=5)
+        desc.pack(pady=10)
         
         return page
     
@@ -191,7 +180,7 @@ class UninstallerApp(ctk.CTk):
         title = ctk.CTkLabel(
             page,
             text="Uninstalling AI Corrector",
-            font=ctk.CTkFont(size=20, weight="bold"),
+            font=ctk.CTkFont(size=18, weight="bold"),
             text_color=self.current_theme["TEXT_COLOR"]
         )
         title.pack(pady=(80, 40))
@@ -225,27 +214,16 @@ class UninstallerApp(ctk.CTk):
         """Page 2: Uninstallation complete"""
         page = ctk.CTkFrame(self.main_frame, corner_radius=0, fg_color=self.current_theme["BG_COLOR"])
         
-        # Success icon - using checkmark in circle
-        icon_label = ctk.CTkLabel(
-            page,
-            text="✓",
-            font=ctk.CTkFont(size=56, weight="bold"),
-            text_color="white",
-            width=80,
-            height=80,
-            corner_radius=40,
-            fg_color="green"
-        )
-        icon_label.pack(pady=(80, 20))
+        # No icon - clean minimal design
         
         # Title
         title = ctk.CTkLabel(
             page,
             text="Uninstallation Complete",
-            font=ctk.CTkFont(size=20, weight="bold"),
+            font=ctk.CTkFont(size=22, weight="bold"),
             text_color=self.current_theme["TEXT_COLOR"]
         )
-        title.pack(pady=(0, 25))
+        title.pack(pady=(100, 30))
         
         # Description
         desc_text = (
@@ -399,11 +377,17 @@ class UninstallerApp(ctk.CTk):
             f.write(f'rmdir /s /q "{self.install_dir}"\n')
             f.write(f'del "%~f0"\n')
         
-        # Schedule the batch file to run
+        # Schedule the batch file to run (suppress console window)
         import subprocess
-        subprocess.Popen(['cmd', '/c', batch_script], 
-                        creationflags=subprocess.CREATE_NO_WINDOW,
-                        shell=False)
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = subprocess.SW_HIDE
+        
+        subprocess.Popen(
+            ['cmd', '/c', batch_script],
+            startupinfo=startupinfo,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
     
     def uninstallation_complete(self):
         """Handle uninstallation completion"""

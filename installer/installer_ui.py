@@ -198,7 +198,7 @@ class InstallerApp(ctk.CTk):
         title = ctk.CTkLabel(
             page,
             text="Choose Installation Location",
-            font=ctk.CTkFont(size=20, weight="bold"),
+            font=ctk.CTkFont(size=18, weight="bold"),
             text_color=self.current_theme["TEXT_COLOR"]
         )
         title.pack(pady=(40, 10), padx=40, anchor="w")
@@ -206,7 +206,7 @@ class InstallerApp(ctk.CTk):
         desc = ctk.CTkLabel(
             page,
             text="Setup will install AI Corrector in the following folder.",
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=12),
             text_color=self.current_theme["TEXT_COLOR"]
         )
         desc.pack(pady=(0, 20), padx=40, anchor="w")
@@ -260,7 +260,7 @@ class InstallerApp(ctk.CTk):
         title = ctk.CTkLabel(
             page,
             text="Select Additional Tasks",
-            font=ctk.CTkFont(size=20, weight="bold"),
+            font=ctk.CTkFont(size=18, weight="bold"),
             text_color=self.current_theme["TEXT_COLOR"]
         )
         title.pack(pady=(40, 10), padx=40, anchor="w")
@@ -268,7 +268,7 @@ class InstallerApp(ctk.CTk):
         desc = ctk.CTkLabel(
             page,
             text="Select the additional tasks you would like Setup to perform:",
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=12),
             text_color=self.current_theme["TEXT_COLOR"]
         )
         desc.pack(pady=(0, 30), padx=40, anchor="w")
@@ -316,7 +316,7 @@ class InstallerApp(ctk.CTk):
         title = ctk.CTkLabel(
             page,
             text="Installing AI Corrector",
-            font=ctk.CTkFont(size=20, weight="bold"),
+            font=ctk.CTkFont(size=18, weight="bold"),
             text_color=self.current_theme["TEXT_COLOR"]
         )
         title.pack(pady=(60, 30), padx=40, anchor="w")
@@ -362,7 +362,7 @@ class InstallerApp(ctk.CTk):
         title = ctk.CTkLabel(
             page,
             text="Installation Complete!",
-            font=ctk.CTkFont(size=24, weight="bold"),
+            font=ctk.CTkFont(size=22, weight="bold"),
             text_color=self.current_theme["TEXT_COLOR"]
         )
         title.pack(pady=(80, 30))
@@ -375,7 +375,7 @@ class InstallerApp(ctk.CTk):
         desc = ctk.CTkLabel(
             page,
             text=desc_text,
-            font=ctk.CTkFont(size=13),
+            font=ctk.CTkFont(size=12),
             text_color=self.current_theme["TEXT_COLOR"],
             justify="center"
         )
