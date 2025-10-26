@@ -142,7 +142,7 @@ python main.py
 ### Using PyInstaller
 
 ```bash
-pyinstaller -F --name AICorrector --paths src --collect-all torch --collect-all transformers --collect-all customtkinter --collect-all spellchecker --add-data "assets/app_logo.ico;." --icon "assets/app_logo.ico" main.py
+pyinstaller -F --name AICorrector --paths src --collect-all torch --collect-all transformers --collect-all customtkinter --collect-all spellchecker --add-data "assets/app_logo.ico;." --icon "assets/app_logo.ico" main.py --specpath config
 ```
 
 The executable will be created in the `dist/` folder.
