@@ -3,40 +3,31 @@
 
 #define MyAppName "AI Corrector"
 #define MyAppVersion "1.0"
-#define MyAppPublisher Jampani Komal ; <-- !!! CHANGE THIS !!!
+#define MyAppPublisher "Jampani Komal"
+#define MyAppURL "https://github.com/JAMPANIKOMAL/AI_Corrector_Project" ; <--- FIX: DEFINED THE MISSING URL
 #define MyAppExeName "app.exe"
-#define OutputBaseFilename "AICorrector_Setup_v1.0" ; <-- Name of the final setup.exe
+#define OutputBaseFilename "AICorrector_Setup_v1.0"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the Inno Setup Compiler.)
-AppId={{AUTO}}
+AppId={{7f31f16b-71a1-44eb-bd16-94bcced9f826}} ; <--- !!! YOU MUST REPLACE THIS !!!
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-;AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={autopf}\{#MyAppName} ; Installs to Program Files
+DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
-; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 OutputBaseFilename={#OutputBaseFilename}
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 
-; --- !!! THEME CUSTOMIZATION (Black & White) !!! ---
-; Inno Setup doesn't have a built-in pure B&W theme.
-; To get a true B&W look like your app, you would typically need to create
-; custom bitmap images for the wizard background, buttons, etc.
-; This is complex. A simpler approach is to use the closest options:
-WizardSmallImageFile=compiler:WizModernSmallImage-IS.bmp ; Default small logo
-; WizardImageFile=compiler:WizModernImage-IS.bmp      ; Default large banner (can be removed for minimalist look)
-; WindowVisible=no ; To hide the main background if using a full custom form
-; Use Setup | Wizard | Style -> "Classic" for a more basic look if needed.
-; For advanced theming, look into Graphical Installer or VCL Styles for Inno Setup.
+; Optional: You can place a simple icon file (e.g., 'icon.ico') in your project root
+SetupIconFile=compiler:AWE_BLUE.ICO 
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -45,9 +36,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; --- !!! IMPORTANT: Point this to your app.exe !!! ---
+; IMPORTANT: Source must be in your main project folder: AI_Corrector_Project\dist\app.exe
 Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
