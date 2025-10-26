@@ -142,10 +142,6 @@ python main.py
 ### Using PyInstaller
 
 ```bash
-pyinstaller config/AICorrector.spec
-
-[OR]
-
 pyinstaller -F --name AICorrector --paths src --collect-all torch --collect-all transformers --collect-all customtkinter --collect-all spellchecker --add-data "assets/app_logo.ico;." --icon "assets/app_logo.ico" main.py
 ```
 
