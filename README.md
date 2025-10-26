@@ -9,8 +9,10 @@ A sophisticated, universal AI-powered grammar and spelling correction applicatio
 - [Features](#features)
 - [AI Methodology](#ai-methodology-focus)
 - [Visual Demonstration](#visual-demonstration)
+- [Project Structure](#project-structure)
 - [Installation](#installation)
 - [Building & Distribution](#building--distribution)
+- [Future Scope](#future-scope-and-enhancements)
 - [Team](#team)
 
 ## Project Evolution: From Browser Goal to Universal Corrector
@@ -85,42 +87,43 @@ To showcase the application's modern UI and core functionality, screenshots of t
 
 ## Project Structure
 
+This directory structure is organized to cleanly separate the application logic (the Source Code deliverable) from the deployment assets and configuration.
+
+Key Deliverables Location:
+- GUI Code: Located in src/ui/main_window.py (demonstrating CustomTkinter implementation)
+- AI Logic: Core T5 model loading and inference is encapsulated in src/utils/grammar_correction.py (demonstrating the AI/search/logic techniques required by the syllabus)
+- Deployment Assets: The installer/ directory contains all necessary files for the professional, end-user deployment package
+
 ```
 AI_Corrector_Project/
 │
-├── src/                          # Source code
-│   ├── __init__.py
-│   ├── ui/                       # User interface modules
-│   │   ├── __init__.py
-│   │   └── main_window.py        # Main application window
-│   └── utils/                    # Utility modules
-│       ├── __init__.py
-│       └── grammar_correction.py # Core correction logic
+├── main.py                       # Application entry point
+├── requirements.txt              # Python dependencies
 │
-├── installer/                    # Custom installer & uninstaller
-│   ├── installer_ui.py           # Professional themed installer
-│   ├── uninstaller_ui.py         # Matching themed uninstaller
-│   ├── requirements.txt          # Installer dependencies
-│   └── AICorrector_Complete_Setup.spec  # Complete installer build spec
+├── src/                          # Core application code
+│   ├── ui/
+│   │   └── main_window.py        # GUI implementation (CustomTkinter)
+│   └── utils/
+│       └── grammar_correction.py # AI correction logic (T5 model)
 │
-├── scripts/                      # Utility scripts
-│   └── download_model.py         # Model download utility
-│
-├── config/                       # Configuration files
-│   └── AICorrector.spec          # PyInstaller spec file
-│
-├── assets/                       # Application assets
+├── assets/                       # Application resources
 │   ├── app_logo.ico              # Application icon
 │   └── app_logo.png              # Application logo
 │
-├── models/                       # Downloaded AI models (gitignored)
-├── dist/                         # Build output (gitignored)
+├── scripts/                      # Utility scripts
+│   └── download_model.py         # T5 model download utility
 │
-├── main.py                       # Application entry point
-├── requirements.txt              # Python dependencies
-├── README.md                     # This file
-├── LICENSE                       # Project license
-└── .gitignore                   # Git ignore rules
+├── config/                       # Build configuration
+│   └── AICorrector.spec          # Main app build specification
+│
+├── installer/                    # Installer package
+│   ├── installer_ui.py           # Themed installer interface
+│   ├── uninstaller_ui.py         # Themed uninstaller interface
+│   ├── requirements.txt          # Installer dependencies
+│   └── AICorrector_Complete_Setup.spec  # Complete installer build spec
+│
+├── models/                       # T5 model weights (downloaded, gitignored)
+└── dist/                         # Built executables (gitignored)
 ```
 
 ## Installation
@@ -150,11 +153,6 @@ python scripts\download_model.py
 # Run the application
 python main.py
 ```
-
-After launching:
-1. Navigate to Settings and select your preferred language model
-2. Ensure the model is downloaded (use download button if needed)
-3. Navigate to Corrector page and start correcting text
 
 ## Building & Distribution
 
@@ -195,6 +193,17 @@ The installer provides:
 - Option to launch app after installation
 
 No admin rights required. No Python needed.
+
+---
+
+## Future Scope and Enhancements
+
+This project serves as a robust proof-of-concept for universal, local, AI-powered correction. For future development, we plan the following enhancements:
+
+- Custom Model Fine-Tuning: Currently relying on a pre-trained T5 model, future work will involve fine-tuning the model on a domain-specific dataset (e.g., technical or legal texts) to improve accuracy in specialized writing.
+- Real-Time API Service: Develop a lightweight, local API endpoint for the correction model, allowing other local applications (like word processors or IDEs) to integrate correction functionality directly without relying on screen/keyboard hooks.
+- Expanded Language Support: Implement and manage T5 models for other regional English variants (e.g., IN) and completely new languages, managed easily through the current GUI's Model Management feature.
+- Hardware Acceleration: Integrate explicit support for different hardware backends (e.g., CUDA for NVIDIA GPUs) within the Python environment to further reduce inference latency, which is critical for real-time universal correction.
 
 ---
 
