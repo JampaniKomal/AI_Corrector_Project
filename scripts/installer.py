@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 AI Corrector - Custom Installer
-Modern black and white theme installer
+Modern black and white theme installer with wizard steps
 """
 
 import customtkinter as ctk
@@ -17,50 +17,136 @@ class Installer(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("AI Corrector Installer")
-        self.geometry("600x500")
+        self.geometry("700x600")
         self.resizable(False, False)
         ctk.set_appearance_mode("dark")
         
         self.install_path = Path(os.path.expanduser("~")) / "AppData" / "Local" / "AICorrector"
         self.is_installing = False
+        self.current_step = 0
+        self.steps = ["Welcome", "Installation Options", "Installation", "Finish"]
         
         self.setup_ui()
+        self.show_step(0)
         
     def setup_ui(self):
         # Header
-        header_frame = ctk.CTkFrame(self, fg_color="#1C1C1C", corner_radius=0)
-        header_frame.pack(fill="x", padx=0, pady=0)
+        self.header_frame = ctk.CTkFrame(self, fg_color="#1C1C1C", corner_radius=0)
+        self.header_frame.pack(fill="x", padx=0, pady=0)
         
-        ctk.CTkLabel(
-            header_frame,
+        self.title_label = ctk.CTkLabel(
+            self.header_frame,
             text="AI Corrector",
             font=ctk.CTkFont(size=28, weight="bold"),
             text_color="#FFFFFF"
-        ).pack(pady=20, padx=20, anchor="w")
+        )
+        self.title_label.pack(pady=20, padx=20, anchor="w")
         
-        ctk.CTkLabel(
-            header_frame,
-            text="v2.3.0 - Custom Installer",
+        self.step_label = ctk.CTkLabel(
+            self.header_frame,
+            text="Step 1 of 4 - Welcome",
             font=ctk.CTkFont(size=12),
             text_color="#AAAAAA"
-        ).pack(pady=(0, 20), padx=20, anchor="w")
+        )
+        self.step_label.pack(pady=(0, 20), padx=20, anchor="w")
         
-        # Main content
-        content_frame = ctk.CTkFrame(self, fg_color="#000000")
-        content_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        # Content area
+        self.content_frame = ctk.CTkFrame(self, fg_color="#000000")
+        self.content_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
-        # Info text
-        info_text = "This will install AI Corrector on your computer.\n\nInstallation Location:"
-        ctk.CTkLabel(
-            content_frame,
-            text=info_text,
-            font=ctk.CTkFont(size=13),
+        # Buttons frame
+        button_frame = ctk.CTkFrame(self, fg_color="#000000")
+        button_frame.pack(fill="x", padx=20, pady=20)
+        button_frame.grid_columnconfigure(1, weight=1)
+        
+        self.back_btn = ctk.CTkButton(
+            button_frame,
+            text="Back",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            fg_color="#1C1C1C",
             text_color="#FFFFFF",
-            justify="left"
-        ).pack(anchor="w", pady=(0, 15))
+            hover_color="#333333",
+            width=100,
+            command=self.go_back
+        )
+        self.back_btn.grid(row=0, column=0, padx=5)
         
-        # Path display
-        path_frame = ctk.CTkFrame(content_frame, fg_color="#1C1C1C", corner_radius=5)
+        self.next_btn = ctk.CTkButton(
+            button_frame,
+            text="Next",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            fg_color="#FFFFFF",
+            text_color="#000000",
+            hover_color="#E0E0E0",
+            width=100,
+            command=self.go_next
+        )
+        self.next_btn.grid(row=0, column=2, padx=5)
+        
+        self.protocol("WM_DELETE_WINDOW", self.cancel_install)
+        
+    def show_step(self, step_num):
+        # Clear content
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
+        
+        self.current_step = step_num
+        self.step_label.configure(text=f"Step {step_num + 1} of 4 - {self.steps[step_num]}")
+        
+        if step_num == 0:
+            self.show_welcome()
+        elif step_num == 1:
+            self.show_options()
+        elif step_num == 2:
+            self.show_installing()
+        elif step_num == 3:
+            self.show_finish()
+        
+        # Update button states
+        self.back_btn.configure(state="normal" if step_num > 0 else "disabled")
+        if step_num == 3:
+            self.next_btn.configure(text="Finish", command=self.quit)
+        else:
+            self.next_btn.configure(text="Next", command=self.go_next)
+    
+    def show_welcome(self):
+        ctk.CTkLabel(
+            self.content_frame,
+            text="Welcome to AI Corrector Installer",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color="#FFFFFF"
+        ).pack(pady=20, anchor="w")
+        
+        welcome_text = """This wizard will guide you through the installation of AI Corrector.
+
+AI Corrector is an intelligent text correction application that uses advanced T5 Transformer models to provide contextual grammar corrections and spelling translations.
+
+Click 'Next' to continue."""
+        
+        ctk.CTkLabel(
+            self.content_frame,
+            text=welcome_text,
+            font=ctk.CTkFont(size=13),
+            text_color="#CCCCCC",
+            justify="left"
+        ).pack(pady=20, padx=10, anchor="w")
+    
+    def show_options(self):
+        ctk.CTkLabel(
+            self.content_frame,
+            text="Installation Options",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color="#FFFFFF"
+        ).pack(pady=20, anchor="w")
+        
+        ctk.CTkLabel(
+            self.content_frame,
+            text="Installation Location:",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            text_color="#FFFFFF"
+        ).pack(pady=(0, 10), anchor="w")
+        
+        path_frame = ctk.CTkFrame(self.content_frame, fg_color="#1C1C1C", corner_radius=5)
         path_frame.pack(fill="x", pady=(0, 20))
         
         ctk.CTkLabel(
@@ -70,11 +156,18 @@ class Installer(ctk.CTk):
             text_color="#AAAAAA"
         ).pack(padx=15, pady=12, anchor="w")
         
-        # Options
+        ctk.CTkLabel(
+            self.content_frame,
+            text="Options:",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            text_color="#FFFFFF"
+        ).pack(pady=(20, 10), anchor="w")
+        
         self.create_desktop_var = tk.BooleanVar(value=True)
+        self.create_startmenu_var = tk.BooleanVar(value=True)
         
         ctk.CTkCheckBox(
-            content_frame,
+            self.content_frame,
             text="Create Desktop Shortcut",
             variable=self.create_desktop_var,
             font=ctk.CTkFont(size=12),
@@ -84,70 +177,85 @@ class Installer(ctk.CTk):
             fg_color="#FFFFFF"
         ).pack(anchor="w", pady=5)
         
-        # Progress bar (hidden initially)
+        ctk.CTkCheckBox(
+            self.content_frame,
+            text="Create Start Menu Entry",
+            variable=self.create_startmenu_var,
+            font=ctk.CTkFont(size=12),
+            text_color="#FFFFFF",
+            border_color="#FFFFFF",
+            checkmark_color="#000000",
+            fg_color="#FFFFFF"
+        ).pack(anchor="w", pady=5)
+    
+    def show_installing(self):
+        ctk.CTkLabel(
+            self.content_frame,
+            text="Installing AI Corrector",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color="#FFFFFF"
+        ).pack(pady=20, anchor="w")
+        
+        self.status_label = ctk.CTkLabel(
+            self.content_frame,
+            text="Preparing installation...",
+            font=ctk.CTkFont(size=12),
+            text_color="#AAAAAA"
+        )
+        self.status_label.pack(anchor="w", pady=(0, 15))
+        
         self.progress_var = tk.DoubleVar(value=0)
         self.progress_bar = ctk.CTkProgressBar(
-            content_frame,
+            self.content_frame,
             variable=self.progress_var,
             fg_color="#1C1C1C",
             progress_color="#FFFFFF",
-            height=6,
-            corner_radius=3
+            height=8,
+            corner_radius=4
         )
+        self.progress_bar.pack(fill="x", pady=20)
         
-        # Status label
-        self.status_label = ctk.CTkLabel(
-            content_frame,
-            text="",
-            font=ctk.CTkFont(size=11),
-            text_color="#AAAAAA"
-        )
+        self.back_btn.configure(state="disabled")
+        self.next_btn.configure(state="disabled")
         
-        # Buttons frame
-        button_frame = ctk.CTkFrame(self, fg_color="#000000")
-        button_frame.pack(fill="x", padx=20, pady=20)
-        button_frame.grid_columnconfigure(1, weight=1)
-        
-        self.cancel_btn = ctk.CTkButton(
-            button_frame,
-            text="Cancel",
-            font=ctk.CTkFont(size=13, weight="bold"),
-            fg_color="#1C1C1C",
-            text_color="#FFFFFF",
-            hover_color="#333333",
-            width=100,
-            command=self.cancel_install
-        )
-        self.cancel_btn.grid(row=0, column=0, padx=5)
-        
-        self.install_btn = ctk.CTkButton(
-            button_frame,
-            text="Install",
-            font=ctk.CTkFont(size=13, weight="bold"),
-            fg_color="#FFFFFF",
-            text_color="#000000",
-            hover_color="#E0E0E0",
-            width=150,
-            command=self.start_install
-        )
-        self.install_btn.grid(row=0, column=2, padx=5)
-        
-        self.protocol("WM_DELETE_WINDOW", self.cancel_install)
-        
-    def start_install(self):
-        if self.is_installing:
-            return
-        
-        self.install_btn.configure(state="disabled")
-        self.cancel_btn.configure(state="disabled")
-        self.is_installing = True
-        
-        # Show progress
-        self.progress_bar.pack(fill="x", pady=(0, 10))
-        self.status_label.pack(anchor="w", pady=(0, 10))
-        
+        # Start installation in thread
         thread = threading.Thread(target=self.run_install, daemon=True)
         thread.start()
+    
+    def show_finish(self):
+        ctk.CTkLabel(
+            self.content_frame,
+            text="Installation Complete!",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color="#FFFFFF"
+        ).pack(pady=20, anchor="w")
+        
+        finish_text = """AI Corrector has been successfully installed.
+
+You can now launch the application from:
+• Desktop (if shortcut was created)
+• Start Menu
+• Installation folder
+
+Click 'Finish' to close this installer."""
+        
+        ctk.CTkLabel(
+            self.content_frame,
+            text=finish_text,
+            font=ctk.CTkFont(size=13),
+            text_color="#CCCCCC",
+            justify="left"
+        ).pack(pady=20, padx=10, anchor="w")
+        
+        self.back_btn.configure(state="disabled")
+    
+    def go_back(self):
+        if self.current_step > 0:
+            self.show_step(self.current_step - 1)
+    
+    def go_next(self):
+        if self.current_step < len(self.steps) - 1:
+            self.show_step(self.current_step + 1)
         
     def run_install(self):
         try:
@@ -173,37 +281,31 @@ class Installer(ctk.CTk):
             
             # Create desktop shortcut if requested
             if self.create_desktop_var.get():
-                self.after(0, self.update_progress, 70, "Creating shortcuts...")
+                self.after(0, self.update_progress, 60, "Creating desktop shortcut...")
                 self.create_desktop_shortcut()
             
             # Create Start Menu shortcut
-            self.after(0, self.update_progress, 85, "Finalizing installation...")
-            self.create_startmenu_shortcut()
+            if self.create_startmenu_var.get():
+                self.after(0, self.update_progress, 80, "Creating Start Menu entry...")
+                self.create_startmenu_shortcut()
             
             self.after(0, self.update_progress, 100, "Installation complete!")
-            self.after(1000, self.installation_complete)
+            self.after(500, self.on_install_complete)
             
         except Exception as e:
             self.after(0, self.show_error, f"Installation failed: {str(e)}")
-            
+    
+    def on_install_complete(self):
+        self.show_step(3)
+        self.back_btn.configure(state="disabled")
+        
     def update_progress(self, value, status):
         self.progress_var.set(value / 100)
         self.status_label.configure(text=status)
         
     def show_error(self, message):
         messagebox.showerror("Installation Error", message)
-        self.is_installing = False
-        self.install_btn.configure(state="normal")
-        self.cancel_btn.configure(state="normal")
-        
-    def installation_complete(self):
-        response = messagebox.showinfo(
-            "Installation Complete",
-            "AI Corrector has been successfully installed!\n\nWould you like to launch it now?"
-        )
-        if response == "ok":
-            os.startfile(self.install_path / "AICorrector.exe")
-        self.quit()
+        self.show_step(1)
         
     def create_desktop_shortcut(self):
         try:
@@ -216,7 +318,6 @@ class Installer(ctk.CTk):
             shortcut.IconLocation = str(self.install_path / "AICorrector.exe")
             shortcut.save()
         except:
-            # Fallback if win32com not available
             pass
             
     def create_startmenu_shortcut(self):
@@ -233,8 +334,8 @@ class Installer(ctk.CTk):
             pass
             
     def cancel_install(self):
-        if self.is_installing:
-            messagebox.showwarning("Installation in Progress", "Cannot cancel during installation.")
+        if self.current_step == 2:
+            messagebox.showwarning("Cannot Cancel", "Installation is in progress.")
             return
         self.quit()
 
