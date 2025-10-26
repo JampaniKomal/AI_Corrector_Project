@@ -1,14 +1,51 @@
-# AI Corrector
+# AI Corrector v2.3.0
 
-A powerful AI-powered contextual grammar and spelling correction application built with T5 Transformer models and a modern GUI interface.
+A sophisticated, universal AI-powered grammar and spelling correction application. Unlike browser-limited extensions, this desktop application uses T5 Transformer models to provide contextual correction across any application on your machine, delivered through a modern, persistent GUI.
 
 ## Table of Contents
 
+- [Project Evolution](#project-evolution-from-browser-goal-to-universal-corrector)
 - [About](#about)
 - [Features](#features)
 - [Installation](#installation)
 - [Building & Distribution](#building--distribution)
 - [Team](#team)
+
+## Project Evolution: From Browser Goal to Universal Corrector
+
+Our primary objective was initially to create a real-time, AI-powered type corrector delivered via a Chrome/Browser Extension. This journey required us to explore various architectures, ultimately leading us to pivot toward a standalone desktop application that could achieve our correction goals across all applications on a user's machine.
+
+### Phase 1: The Basic Extension (Invisible-Autocorrect-Extension)
+
+Repository: https://github.com/JAMPANIKOMAL/invisible-autocorrect-extension
+
+Architecture: Rule-based/Dictionary-based correction implemented as a minimalist Chrome Extension.
+
+What it Lacked: This prototype successfully achieved the extension deployment but lacked the sophistication required for the project. It could only perform simple spelling lookups, falling short of the required AI functionality—specifically, contextual and grammatical correction provided by neural networks.
+
+### Phase 2: The AI Integration Challenge (Ghost-Type-Corrector)
+
+Repository: https://github.com/JAMPANIKOMAL/Ghost-Type-Corrector
+
+Architecture: Attempted to integrate a heavy AI component (TensorFlow/Keras model) directly into the browser extension's sandbox environment.
+
+What it Lacked: Integrating a full-scale AI model proved immensely complex and performance-intensive within the constraints of the browser's architecture. The technical complexity and performance degradation forced us to seek an alternative deployment method that could support our robust neural network.
+
+### Phase 3: AI Model Validation (Type-Correcter-Ai)
+
+Repository: https://github.com/JAMPANIKOMAL/Type-Correcter-Ai
+
+Architecture: A pivot to a Flask Web Application to isolate and validate the performance of the core Sequence-to-Sequence Neural Network.
+
+What it Lacked: While proving the AI model was effective, the web interface limited the solution to one tab/browser. It failed to address our expanded vision: universal correction in every selected app—not just Chrome.
+
+### Final Solution: AI Corrector Project (The Universal Solution)
+
+We settled on a standalone desktop application using Python and CustomTkinter. This architecture was the logical conclusion because it successfully addressed the limitations of all prototypes:
+
+1. AI Power: It allows the robust, resource-intensive T5 Transformer model to run natively, unconstrained by a browser sandbox.
+2. Universal Reach: By operating as a desktop application, it can process text input from any application (text editor, IDE, messaging app), fulfilling our ultimate goal of a truly universal AI corrector.
+3. Meets Project Requirements: It provides a professional, dedicated Graphical User Interface (GUI) for control and demonstration with modern theming support.
 
 ## About
 
@@ -82,14 +119,26 @@ Download and run `AICorrector-Setup-v2.3.0.exe` (240 MB)
 
 ### For Developers
 
+Clone and run from source:
+
 ```powershell
 git clone https://github.com/JAMPANIKOMAL/AI_Corrector_Project.git
 cd AI_Corrector_Project
 python -m venv venv
 .\venv\Scripts\activate
 pip install -r requirements.txt
+```
+
+Run the application:
+
+```powershell
 python main.py
 ```
+
+First-time setup:
+1. Navigate to Settings and select your preferred language model
+2. Click download if the model is not already installed
+3. Navigate to Corrector page and start correcting text
 
 ## Building & Distribution
 
