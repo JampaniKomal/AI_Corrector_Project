@@ -17,9 +17,21 @@ class UniversalInstaller(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("AI Corrector Setup")
-        self.geometry("700x600")
+        self.geometry("800x650")
         self.resizable(False, False)
         ctk.set_appearance_mode("dark")
+        
+        # Set icon
+        try:
+            if getattr(sys, 'frozen', False):
+                icon_path = os.path.join(sys._MEIPASS, "assets", "app_logo.ico")
+            else:
+                icon_path = os.path.join(os.path.dirname(__file__), "..", "assets", "app_logo.ico")
+            
+            if os.path.exists(icon_path):
+                self.iconbitmap(icon_path)
+        except:
+            pass
         
         self.install_path = Path(os.path.expanduser("~")) / "AppData" / "Local" / "AICorrector"
         self.is_installed = self.check_installed()
@@ -59,7 +71,7 @@ class UniversalInstaller(ctk.CTk):
             self.header_frame,
             text="Setup",
             font=ctk.CTkFont(size=12),
-            text_color="#AAAAAA"
+            text_color="#FFFFFF"
         )
         self.step_label.pack(pady=(0, 20), padx=20, anchor="w")
         
@@ -151,7 +163,7 @@ Click 'Next' to continue."""
             self.content_frame,
             text=welcome_text,
             font=ctk.CTkFont(size=13),
-            text_color="#CCCCCC",
+            text_color="#FFFFFF",
             justify="left"
         ).pack(pady=20, padx=10, anchor="w")
     
@@ -170,14 +182,14 @@ Click 'Next' to continue."""
             text_color="#FFFFFF"
         ).pack(pady=(0, 10), anchor="w")
         
-        path_frame = ctk.CTkFrame(self.content_frame, fg_color="#1C1C1C", corner_radius=5)
+        path_frame = ctk.CTkFrame(self.content_frame, fg_color="#000000", corner_radius=5)
         path_frame.pack(fill="x", pady=(0, 20))
         
         ctk.CTkLabel(
             path_frame,
             text=str(self.install_path),
             font=ctk.CTkFont(size=11),
-            text_color="#AAAAAA"
+            text_color="#FFFFFF"
         ).pack(padx=15, pady=12, anchor="w")
         
         ctk.CTkLabel(
@@ -259,18 +271,18 @@ Installation folder:"""
             self.content_frame,
             text=confirm_text,
             font=ctk.CTkFont(size=13),
-            text_color="#CCCCCC",
+            text_color="#FFFFFF",
             justify="left"
         ).pack(pady=(0, 10), padx=10, anchor="w")
         
-        path_frame = ctk.CTkFrame(self.content_frame, fg_color="#1C1C1C", corner_radius=5)
+        path_frame = ctk.CTkFrame(self.content_frame, fg_color="#000000", corner_radius=5)
         path_frame.pack(fill="x", pady=20)
         
         ctk.CTkLabel(
             path_frame,
             text=str(self.install_path),
             font=ctk.CTkFont(size=11),
-            text_color="#AAAAAA"
+            text_color="#FFFFFF"
         ).pack(padx=15, pady=12, anchor="w")
         
         self.remove_shortcuts_var = tk.BooleanVar(value=True)
@@ -304,7 +316,7 @@ Click 'Finish' to close this setup."""
             self.content_frame,
             text=complete_text,
             font=ctk.CTkFont(size=13),
-            text_color="#CCCCCC",
+            text_color="#FFFFFF",
             justify="left"
         ).pack(pady=20, padx=10, anchor="w")
         
@@ -326,7 +338,7 @@ Click 'Finish' to close this setup."""
             self.content_frame,
             text="Preparing...",
             font=ctk.CTkFont(size=12),
-            text_color="#AAAAAA"
+            text_color="#FFFFFF"
         )
         self.status_label.pack(anchor="w", pady=(0, 15))
         
@@ -334,7 +346,7 @@ Click 'Finish' to close this setup."""
         self.progress_bar = ctk.CTkProgressBar(
             self.content_frame,
             variable=self.progress_var,
-            fg_color="#1C1C1C",
+            fg_color="#000000",
             progress_color="#FFFFFF",
             height=8,
             corner_radius=4
