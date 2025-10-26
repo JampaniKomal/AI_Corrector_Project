@@ -1,9 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_data_files
 
-datas = [('model', 'model')]
+datas = []
 datas += collect_data_files('customtkinter')
-datas += collect_data_files('pyspellchecker')
+datas += collect_data_files('spellchecker')
 
 
 a = Analysis(
