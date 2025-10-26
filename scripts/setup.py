@@ -353,10 +353,12 @@ Click 'Finish' to close this setup."""
     
     def run_install(self):
         try:
-            # Get executable path
+            # Get executable path (bundled inside the installer)
             if getattr(sys, 'frozen', False):
+                # Running as bundled EXE
                 exe_source = os.path.join(sys._MEIPASS, "AICorrector.exe")
             else:
+                # Running from source (development)
                 exe_source = os.path.join(os.path.dirname(__file__), "..", "dist", "AICorrector.exe")
             
             if not os.path.exists(exe_source):

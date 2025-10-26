@@ -150,24 +150,23 @@ python main.py
 pyinstaller -F --noconsole --name AICorrector --paths src --collect-all torch --collect-all transformers --collect-all customtkinter --collect-all spellchecker --collect-all PIL --add-data "assets\\app_logo.ico;assets" --icon assets\\app_logo.ico main.py
 ```
 
-The executable will be created in the `dist/` folder.
+The executable will be created in the `dist/` folder (~200MB).
 
-### Step 2: Build Universal Installer/Uninstaller
+### Step 2: Build All-in-One Installer (includes app inside)
 
 ```bash
-pyinstaller -F --noconsole --name AICorrector-Setup --collect-all customtkinter --icon assets\\app_logo.ico scripts/setup.py
+pyinstaller -F --noconsole --name AICorrector-Setup --collect-all customtkinter --add-data "dist\\AICorrector.exe;." --icon assets\\app_logo.ico scripts/setup.py
 ```
 
-### Step 3: Bundle for Distribution
+This bundles `AICorrector.exe` **inside** the installer.
 
-After building both executables, you'll have:
-- `dist/AICorrector.exe` - Main application
-- `dist/AICorrector-Setup.exe` - Combined installer & uninstaller
+### Distribution
 
-**Distribution Package:**
-- Users run `AICorrector-Setup.exe`
-- On first run: **Install mode** - Guides through installation
-- On subsequent runs: **Uninstall mode** - Offers to uninstall
+After building:
+- `dist/AICorrector-Setup.exe` - **Single file (~200MB)** containing everything
+  - Users download this ONE file
+  - Run it to install
+  - Run it again to uninstall
 
 ### Universal Setup Features
 
