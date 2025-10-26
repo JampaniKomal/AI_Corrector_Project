@@ -47,22 +47,22 @@ def toggle_sidebar():
     if side_menu_frame.winfo_width() > 100: # If it's expanded
         # Collapse
         side_menu_frame.grid_configure(sticky="ns") # Stop sticking to west
+        title_label.grid_forget() # Hide the main title
         
-        # Hide text, show icons
-        title_label.grid_forget()
-        corrector_nav_btn.configure(text="", image=nav_icon_corrector, anchor="center")
-        about_nav_btn.configure(text="", image=nav_icon_about, anchor="center")
-        settings_nav_btn.configure(text="", image=nav_icon_settings, anchor="center")
+        # Configure buttons for "collapsed" state (show only icon-like text)
+        corrector_nav_btn.configure(text="C", anchor="center")
+        about_nav_btn.configure(text="A", anchor="center")
+        settings_nav_btn.configure(text="S", anchor="center")
         menu_toggle_btn.configure(text="☰") # Show "expand" icon
     else:
         # Expand
         side_menu_frame.grid_configure(sticky="nsw") # Stick to west
+        title_label.grid(row=1, column=0, pady=(0, 20), padx=20, sticky="w") # Add title back
         
-        # Show text, hide icons
-        title_label.grid(row=1, column=0, pady=(20, 10), padx=20)
-        corrector_nav_btn.configure(text="Corrector", image=None, anchor="w")
-        about_nav_btn.configure(text="About Us", image=None, anchor="w")
-        settings_nav_btn.configure(text="Settings", image=None, anchor="w")
+        # Configure buttons for "expanded" state (show full text)
+        corrector_nav_btn.configure(text="Corrector", anchor="w")
+        about_nav_btn.configure(text="About Us", anchor="w")
+        settings_nav_btn.configure(text="Settings", anchor="w")
         menu_toggle_btn.configure(text="<") # Show "collapse" icon
 
 def show_page_corrector():
@@ -95,15 +95,9 @@ root.grid_columnconfigure(1, weight=1) # Main content area expands
 root.grid_rowconfigure(0, weight=1)    # Main content area expands
 
 # --- 6. CREATE SIDE MENU ---
-# We need placeholder images for the icons.
-# CTk doesn't have built-in icons, so we create simple ones.
-nav_icon_corrector = ctk.CTkImage(light_image=None, dark_image=None, size=(20, 20)) # Placeholder
-nav_icon_about = ctk.CTkImage(light_image=None, dark_image=None, size=(20, 20))     # Placeholder
-nav_icon_settings = ctk.CTkImage(light_image=None, dark_image=None, size=(20, 20))  # Placeholder
-
 side_menu_frame = ctk.CTkFrame(
     root,
-    width=250,
+    width=250, # Initial expanded width
     corner_radius=0,
     fg_color=MENU_COLOR
 )
@@ -112,11 +106,12 @@ side_menu_frame.grid_rowconfigure(4, weight=1) # Push settings to bottom
 
 menu_toggle_btn = ctk.CTkButton(
     side_menu_frame,
-    text="<",
+    text="<", # Start with "collapse" icon
     width=40,
     font=ctk.CTkFont(size=18, weight="bold"),
     fg_color="transparent",
-    command=toggle_sidebar
+    command=toggle_sidebar,
+    anchor="w"
 )
 menu_toggle_btn.grid(row=0, column=0, pady=20, padx=20, sticky="w")
 
@@ -126,7 +121,7 @@ title_label = ctk.CTkLabel(
     font=ctk.CTkFont(size=22, weight="bold"),
     anchor="w"
 )
-title_label.grid(row=1, column=0, pady=(0, 20), padx=20)
+title_label.grid(row=1, column=0, pady=(0, 20), padx=20, sticky="w")
 
 corrector_nav_btn = ctk.CTkButton(
     side_menu_frame,
@@ -229,7 +224,7 @@ corrector_output_textbox.grid(row=1, column=2, sticky="nsew", padx=(10, 0))
 corrector_output_textbox.configure(state="disabled")
 
 # --- Page 2: About Us ---
-about_page_frame = ctk.CTkFrame(root, corner_radius=0, fg_color=BG_GOLOR)
+about_page_frame = ctk.CTkFrame(root, corner_radius=0, fg_color=BG_COLOR)
 # We configure its grid but don't show it yet
 about_page_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
 about_page_frame.grid_forget() # Hide it
@@ -263,4 +258,6 @@ ctk.CTkLabel(
 
 
 # --- 8. START THE APPLICATION ---
+# Show the main page by default
+show_page_corrector()
 root.mainloop()
