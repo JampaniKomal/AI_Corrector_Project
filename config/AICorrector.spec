@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('assets/app_logo.ico', '.')]
+datas = [('..\\\\assets\\\\app_logo.ico', '.')]
 binaries = []
 hiddenimports = []
 tmp_ret = collect_all('torch')
@@ -48,5 +48,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['assets\\app_logo.ico'],
+    icon=['..\\assets\\app_logo.ico'],
 )
