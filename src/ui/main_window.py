@@ -3,9 +3,9 @@ import tkinter as tk
 import tkinter.messagebox as messagebox # Keep for fallback if needed
 import threading
 import os
-from correct import (SUPPORTED_MODELS, check_if_model_downloaded,
-                     download_model_for_language, load_model_from_disk,
-                     correct_grammar, get_model_path)
+from utils.grammar_correction import (SUPPORTED_MODELS, check_if_model_downloaded,
+                                      download_model_for_language, load_model_from_disk,
+                                      correct_grammar, get_model_path)
 from spellchecker import SpellChecker
 
 # --- THEME DEFINITIONS ---

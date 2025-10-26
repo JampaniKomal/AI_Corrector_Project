@@ -1,0 +1,21 @@
+# AI Corrector Project - Python Dependencies
+# Generated on October 26, 2025
+
+# GUI Framework
+customtkinter>=5.2.0
+
+# Machine Learning / NLP
+transformers>=4.30.0
+torch>=2.0.0
+sentencepiece>=0.1.99
+
+# Spell Checking
+pyspellchecker>=0.7.2
+
+# Build & Packaging (for creating executables)
+pyinstaller>=5.13.0
+
+# Optional: For development
+# black>=23.0.0  # Code formatting
+# flake8>=6.0.0  # Linting
+# pytest>=7.4.0  # Testing
