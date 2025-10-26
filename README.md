@@ -1,4 +1,4 @@
-# AI Corrector v2.3.0
+# AI Corrector v2
 
 A sophisticated, universal AI-powered grammar and spelling correction application. Unlike browser-limited extensions, this desktop application uses T5 Transformer models to provide contextual correction across any application on your machine, delivered through a modern, persistent GUI.
 
