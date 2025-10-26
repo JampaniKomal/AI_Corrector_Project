@@ -1,32 +1,55 @@
-# Import the AI libraries we need
 from transformers import T5ForConditionalGeneration, T5Tokenizer
+import sys
+import os
 
+# --- NEW HELPER FUNCTION ---
+def resource_path(relative_path):
+    """
+    Get absolute path to resource, works for dev and for PyInstaller.
+    This function is CRITICAL for the .exe to find the model files.
+    """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        # Not running in PyInstaller bundle (i.e., running in dev)
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+
+# --- UPDATED INITIALIZE FUNCTION ---
 def initialize_model():
     """
-    This function loads the pre-trained AI model and tokenizer from the internet.
-    It will download them the first time you run it.
+    This function now loads the AI model from our local 'model' folder.
     """
-    print("Initializing model... (This may take a moment the first time)")
+    print("Initializing model from local files...")
     
-    # This is the name of the pre-trained model we are using
-    model_name = 'vennify/t5-base-grammar-correction'
+    # Use our helper function to find the 'model' folder
+    model_path = resource_path("model")
     
-    # Load the model's "brain"
-    model = T5ForConditionalGeneration.from_pretrained(model_name)
-    
-    # Load the "tokenizer," which knows how to break text into pieces
-    # that the model understands.
-    tokenizer = T5Tokenizer.from_pretrained(model_name)
-    
+    try:
+        # Load the model's "brain" from the local path
+        model = T5ForConditionalGeneration.from_pretrained(model_path)
+        
+        # Load the "tokenizer" from the local path
+        tokenizer = T5Tokenizer.from_pretrained(model_path)
+    except Exception as e:
+        print(f"---!! ERROR !!----")
+        print(f"Could not load model from path: {model_path}")
+        print(f"Error: {e}")
+        print(f"Make sure you have run 'download_model.py' first.")
+        input("Press Enter to exit...")
+        sys.exit(1)
+        
     print("Model loaded successfully.")
     return model, tokenizer
 
+# --- UNCHANGED FUNCTION ---
 def correct_grammar(input_text, model, tokenizer):
     """
     This function takes your bad text and uses the AI model to fix it.
     """
-    print(f"Correcting text: '{input_text}'")
-    
     # The model expects the text to start with "grammar: "
     input_text = f"grammar: {input_text}"
     
@@ -36,8 +59,8 @@ def correct_grammar(input_text, model, tokenizer):
     # 2. GENERATE: Ask the AI model to generate new tokens
     outputs = model.generate(
         inputs,
-        max_length=256,  # Maximum length of the corrected sentence
-        num_beams=4,       # Helps the model find a better answer
+        max_length=256,
+        num_beams=4,
         early_stopping=True
     )
     
@@ -45,22 +68,3 @@ def correct_grammar(input_text, model, tokenizer):
     corrected_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     
     return corrected_text
-
-# This special line means "only run the code below if we are
-# running this file directly"
-if __name__ == "__main__":
-    
-    # 1. Load the AI model and tokenizer into memory
-    model, tokenizer = initialize_model()
-    
-    # 2. Define the sentence we want to fix
-    #    (This includes your "teh" typo AND grammar mistakes)
-    bad_text = "He walk to teh store and buyed apples. their going to be good."
-
-    # 3. Call our function to get the corrected text
-    good_text = correct_grammar(bad_text, model, tokenizer)
-    
-    # 4. Print the results!
-    print("--- RESULT ---")
-    print(f"Original: {bad_text}")
-    print(f"Corrected: {good_text}")

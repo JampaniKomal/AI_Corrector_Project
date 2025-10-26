@@ -44,6 +44,18 @@ venv.bak/
 .env.*
 secrets.json
 
+# Models / large ML artifacts
+# Ignore downloaded model directories and common weight file formats
+model/
+*.pt
+*.pth
+*.bin
+*.ckpt
+*.safetensors
+*.h5
+*.onnx
+*.tflite
+
 # OS files
 .DS_Store
 Thumbs.db
