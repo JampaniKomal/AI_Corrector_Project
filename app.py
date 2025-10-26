@@ -1,29 +1,23 @@
+import customtkinter as ctk  # Import the modern library
 import tkinter as tk
-from tkinter import scrolledtext, font
-
-# --- Import our AI functions ---
-# We keep this part exactly the same.
 from correct import initialize_model, correct_grammar
 
-# --- 1. THEME & FONT DEFINITIONS ---
-# New Black & White minimalist theme
-BG_COLOR = "#000000"     # Black background
-FG_COLOR = "#FFFFFF"     # White text
-MENU_BG = "#1C1C1C"    # A slightly lighter black for the menu
-ENTRY_BG = "#1C1C1C"    # Dark grey for text boxes
-BORDER_COLOR = "#FFFFFF" # White border for emphasis
-
-# Define our fonts
-TITLE_FONT = ("Helvetica", 18, "bold")
-MENU_FONT = ("Helvetica", 11, "bold")
-LABEL_FONT = ("Helvetica", 12)
-TEXT_FONT = ("Helvetica", 11)
-
-
-# --- 2. SETUP THE AI (Same as before) ---
+# --- 1. SETUP THE AI (Same as before) ---
 print("App started. Loading AI model...")
 model, tokenizer = initialize_model()
 print("Model ready. Starting GUI...")
+
+# --- 2. THEME & APP SETUP ---
+ctk.set_appearance_mode("dark") # Use a dark base theme
+
+# Define our custom B&W theme colors
+BG_COLOR = "#000000"
+MENU_COLOR = "#1C1C1C"
+ENTRY_COLOR = "#1C1C1C"
+TEXT_COLOR = "#FFFFFF"
+BTN_COLOR = "#FFFFFF"
+BTN_TEXT_COLOR = "#000000"
+BTN_HOVER_COLOR = "#E0E0E0"
 
 
 # --- 3. DEFINE THE CORE APP FUNCTION ---
@@ -31,7 +25,7 @@ def on_correct_button_click():
     """
     This function is called when the user clicks the "Correct" button.
     """
-    input_text = input_textbox.get("1.0", tk.END)
+    input_text = input_textbox.get("1.0", "end-1c") # Get text from CTkTextbox
     
     if len(input_text.strip()) < 1:
         return
@@ -39,152 +33,139 @@ def on_correct_button_click():
     print(f"Correcting text: '{input_text.strip()}'")
     
     # Update button to show "Working..."
-    # We will add the button back in a later step.
-    # For now, this function just does the AI logic.
+    correct_button.configure(text="Correcting...", state="disabled")
     root.update_idletasks() # Force GUI to update
     
     # --- Run the AI ---
     corrected_text = correct_grammar(input_text, model, tokenizer)
     
     # --- Update the GUI ---
-    output_textbox.config(state="normal")
+    output_textbox.configure(state="normal") # Enable writing
     output_textbox.delete("1.0", tk.END)
     output_textbox.insert("1.0", corrected_text)
-    output_textbox.config(state="disabled")
-
+    output_textbox.configure(state="disabled") # Disable writing
+    
+    # Change button back
+    correct_button.configure(text="Correct Text", state="normal")
 
 # --- 4. CREATE THE MAIN WINDOW ---
-root = tk.Tk()
+root = ctk.CTk()
 root.title("AI Corrector")
-root.geometry("900x500") # Wider to fit horizontal layout
-root.configure(bg=BG_COLOR) # Set the main background color
+root.geometry("1000x600") # Bigger window
+root.configure(fg_color=BG_COLOR)
 
-# --- 5. CREATE THE LAYOUT FRAMES ---
+# --- 5. CREATE THE LAYOUT ---
+# Configure the main window grid layout
+root.grid_columnconfigure(1, weight=1) # Main content area expands
+root.grid_rowconfigure(0, weight=1)    # Main content area expands
 
 # --- Side Menu (Left) ---
-side_menu_frame = tk.Frame(root, width=200, bg=MENU_BG)
-side_menu_frame.pack(side="left", fill="y") # Pack to the left, fill vertically
+side_menu_frame = ctk.CTkFrame(
+    root,
+    width=200,
+    corner_radius=0, # Sharp corners for the menu
+    fg_color=MENU_COLOR
+)
+side_menu_frame.grid(row=0, column=0, sticky="nsw") # Stick to North-South-West
 
 # --- Main Content (Right) ---
-main_content_frame = tk.Frame(root, bg=BG_COLOR)
-main_content_frame.pack(side="right", fill="both", expand=True, padx=20, pady=20)
+main_content_frame = ctk.CTkFrame(root, corner_radius=0, fg_color=BG_COLOR)
+main_content_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
+main_content_frame.grid_columnconfigure((0, 1), weight=1) # Let both text boxes expand
+main_content_frame.grid_rowconfigure(1, weight=1) # Let text boxes fill height
+
 
 # --- 6. POPULATE THE SIDE MENU ---
-
-# App Title in the menu
-title_label = tk.Label(
+title_label = ctk.CTkLabel(
     side_menu_frame, 
     text="AI Corrector", 
-    font=TITLE_FONT, 
-    fg=FG_COLOR, 
-    bg=MENU_BG
+    font=ctk.CTkFont(size=20, weight="bold")
 )
 title_label.pack(pady=20, padx=20)
 
-# Menu buttons (as Labels for a flat look)
-# These are "placeholders" for your future ideas
-corrector_button = tk.Label(
-    side_menu_frame, 
-    text="> Corrector", 
-    font=MENU_FONT, 
-    fg=FG_COLOR, 
-    bg=MENU_BG
+# Menu Buttons (using CTkButton for a modern feel)
+corrector_button = ctk.CTkButton(
+    side_menu_frame,
+    text="Corrector",
+    fg_color="transparent", # Make it look like a label
+    text_color=TEXT_COLOR,  # White text
+    font=ctk.CTkFont(size=14, weight="bold"),
+    anchor="w" # Align text to the left (west)
 )
-corrector_button.pack(pady=10, padx=20, anchor="w")
+corrector_button.pack(fill="x", padx=20, pady=5)
 
-settings_button = tk.Label(
-    side_menu_frame, 
-    text="  Settings", 
-    font=MENU_FONT, 
-    fg="#808080",  # Greyed out to show it's "inactive"
-    bg=MENU_BG
+settings_button = ctk.CTkButton(
+    side_menu_frame,
+    text="Settings",
+    fg_color="transparent",
+    text_color="#808080", # Greyed out
+    font=ctk.CTkFont(size=14),
+    anchor="w"
 )
-settings_button.pack(pady=10, padx=20, anchor="w")
+settings_button.pack(fill="x", padx=20, pady=5)
 
-language_button = tk.Label(
-    side_menu_frame, 
-    text="  Languages (EN-US)", 
-    font=MENU_FONT, 
-    fg="#808080", 
-    bg=MENU_BG
+language_button = ctk.CTkButton(
+    side_menu_frame,
+    text="Languages (EN-US)",
+    fg_color="transparent",
+    text_color="#808080",
+    font=ctk.CTkFont(size=14),
+    anchor="w"
 )
-language_button.pack(pady=10, padx=20, anchor="w")
+language_button.pack(fill="x", padx=20, pady=5)
+
 
 # --- 7. POPULATE THE MAIN CONTENT ---
 
-# --- Input Frame (Left side of main) ---
-input_frame = tk.Frame(main_content_frame, bg=BG_COLOR)
-input_frame.pack(side="left", fill="both", expand=True, padx=10)
-
-input_label = tk.Label(
-    input_frame, 
+# --- Input Side ---
+input_label = ctk.CTkLabel(
+    main_content_frame, 
     text="Input Text:", 
-    font=LABEL_FONT, 
-    fg=FG_COLOR, 
-    bg=BG_COLOR
+    font=ctk.CTkFont(size=14)
 )
-input_label.pack(anchor="w", pady=(0, 5))
+input_label.grid(row=0, column=0, sticky="w", pady=(0, 5))
 
-input_textbox = scrolledtext.ScrolledText(
-    input_frame, 
-    height=20,
-    font=TEXT_FONT,
-    bg=ENTRY_BG,          # Dark box background
-    fg=FG_COLOR,         # White text
-    insertbackground=FG_COLOR, # White blinking cursor
-    relief="flat",         # No 3D border
-    borderwidth=2,         # Thin border
-    highlightbackground=BORDER_COLOR, # Border color
-    highlightcolor=BORDER_COLOR,
-    highlightthickness=1
+input_textbox = ctk.CTkTextbox(
+    main_content_frame,
+    corner_radius=10, # <-- CURVED CORNERS
+    fg_color=ENTRY_COLOR,
+    text_color=TEXT_COLOR,
+    font=ctk.CTkFont(size=13)
 )
-input_textbox.pack(fill="both", expand=True)
+input_textbox.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
 
-# --- Output Frame (Right side of main) ---
-output_frame = tk.Frame(main_content_frame, bg=BG_COLOR)
-output_frame.pack(side="right", fill="both", expand=True, padx=10)
-
-output_label = tk.Label(
-    output_frame, 
+# --- Output Side ---
+output_label = ctk.CTkLabel(
+    main_content_frame, 
     text="Corrected Text:", 
-    font=LABEL_FONT, 
-    fg=FG_COLOR, 
-    bg=BG_COLOR
+    font=ctk.CTkFont(size=14)
 )
-output_label.pack(anchor="w", pady=(0, 5))
+output_label.grid(row=0, column=1, sticky="w", pady=(0, 5))
 
-output_textbox = scrolledtext.ScrolledText(
-    output_frame, 
-    height=20,
-    font=TEXT_FONT,
-    bg=ENTRY_BG,
-    fg=FG_COLOR,
-    relief="flat",
-    borderwidth=2,
-    highlightbackground=BORDER_COLOR,
-    highlightcolor=BORDER_COLOR,
-    highlightthickness=1
+output_textbox = ctk.CTkTextbox(
+    main_content_frame,
+    corner_radius=10, # <-- CURVED CORNERS
+    fg_color=ENTRY_COLOR,
+    text_color=TEXT_COLOR,
+    font=ctk.CTkFont(size=13)
 )
-output_textbox.pack(fill="both", expand=True)
-output_textbox.config(state="disabled") # Read-only
+output_textbox.grid(row=1, column=1, sticky="nsew", padx=(10, 0))
+output_textbox.configure(state="disabled")
 
 
 # --- 8. ADD THE "CORRECT" BUTTON ---
-# We'll place it under the Input box
-correct_button = tk.Button(
-    input_frame, # Note: We add it to the input_frame
-    text="Correct Text", 
+# We'll place it in the bottom right
+correct_button = ctk.CTkButton(
+    main_content_frame,
+    text="Correct Text",
     command=on_correct_button_click,
-    font=LABEL_FONT,
-    bg=FG_COLOR, # White button
-    fg=BG_COLOR, # Black text
-    activebackground="#808080",
-    activeforeground=BG_COLOR,
-    relief="flat",
-    padx=15,
-    pady=5
+    font=ctk.CTkFont(size=13, weight="bold"),
+    fg_color=BTN_COLOR,
+    text_color=BTN_TEXT_COLOR,
+    hover_color=BTN_HOVER_COLOR,
+    corner_radius=8
 )
-correct_button.pack(pady=10)
+correct_button.grid(row=2, column=1, sticky="e", pady=(15, 0))
 
 
 # --- 9. START THE APPLICATION ---
