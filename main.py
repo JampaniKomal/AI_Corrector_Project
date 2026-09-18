@@ -42,7 +42,7 @@ def main():
             icon_image = ImageTk.PhotoImage(Image.open(png_path))
             app.iconphoto(False, icon_image)
         else:
-            print("⚠️ No icon found in assets folder.")
+            print("Warning: no icon found in assets folder.")
     except Exception as e:
         print(f"Error loading icon: {e}")
 

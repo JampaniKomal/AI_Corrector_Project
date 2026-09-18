@@ -236,6 +236,9 @@ Academic Year: 2024-2025
 - Hugging Face for providing pre-trained models
 - The Transformers library team
 - CustomTkinter developers
-- Gemini
 
 This is an academic project developed for educational purposes.
+
+## License
+
+MIT License — see [LICENSE](./LICENSE) for details.
